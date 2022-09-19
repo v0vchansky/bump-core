@@ -1,0 +1,95 @@
+{
+    "parser": "@typescript-eslint/parser",
+    "parserOptions": {
+        "project": "tsconfig.json",
+        "tsconfigRootDir": "__dirname",
+        "sourceType": "module"
+    },
+    "plugins": ["@typescript-eslint/eslint-plugin"],
+    "extends": ["@typescript-eslint", "simple-import-sort", "react-prefer-function-component"],
+    "root": true,
+    "env": {
+        "node": true,
+        "jest": true
+    },
+    "ignorePatterns": [".eslintrc.json"],
+    "rules": {
+        "@typescript-eslint/interface-name-prefix": "off",
+        "@typescript-eslint/explicit-function-return-type": "off",
+        "@typescript-eslint/explicit-module-boundary-types": "off",
+        "@typescript-eslint/no-explicit-any": "off",
+
+        "simple-import-sort/imports": [
+            "error",
+            {
+                "groups": [
+                    // Node.js builtins. You could also generate this regex if you use a `.js` config.
+                    [
+                        "^(assert|buffer|child_process|cluster|console|constants|crypto|dgram|dns|domain|events|fs|http|https|module|net|os|path|punycode|querystring|readline|repl|stream|string_decoder|sys|timers|tls|tty|url|util|vm|zlib|freelist|v8|process|async_hooks|http2|perf_hooks)(/.*|$)"
+                    ],
+                    // Packages. `react` related packages come first.
+                    ["^react", "^@?\\w"],
+                    ["^~"],
+                    // Parent imports. Put `..` last.
+                    ["^\\.\\.(?!/?$)", "^\\.\\./?$"],
+                    // Other relative imports. Put same-folder imports and `.` last.
+                    ["^\\./(?=.*/)(?!/?$)", "^\\.(?!/?$)", "^\\./?$"]
+                ]
+            }
+        ],
+        "padding-line-between-statements": [
+            "error",
+            { "blankLine": "always", "prev": "*", "next": "return" },
+            { "blankLine": "always", "prev": ["const", "let", "var"], "next": "*" },
+            {
+                "blankLine": "any",
+                "prev": ["const", "let", "var"],
+                "next": ["const", "let", "var"]
+            },
+            { "blankLine": "always", "prev": "*", "next": "multiline-block-like" },
+            { "blankLine": "always", "prev": "multiline-block-like", "next": "*" }
+        ],
+        "@typescript-eslint/naming-convention": [
+            "warn",
+            {
+                "selector": "typeAlias",
+                "prefix": ["I"],
+                "format": null
+            },
+            {
+                "selector": "interface",
+                "format": ["PascalCase"],
+                "custom": {
+                    "regex": "^I[A-Z]",
+                    "match": true
+                }
+            },
+            {
+                "selector": "enumMember",
+                "format": ["StrictPascalCase"]
+            }
+        ],
+        "no-use-before-define": "off",
+        "@typescript-eslint/no-use-before-define": ["error"],
+        "no-undef": "off",
+        "no-duplicate-imports": "off",
+        "@typescript-eslint/no-duplicate-imports": ["error"],
+        "react-prefer-function-component/react-prefer-function-component": [
+            "error",
+            { "allowComponentDidCatch": true }
+        ],
+        "@typescript-eslint/array-type": ["error", { "default": "array-simple" }],
+        "@typescript-eslint/no-non-null-assertion": ["error"],
+        "@typescript-eslint/consistent-type-assertions": ["error", { "assertionStyle": "never" }],
+        "@typescript-eslint/ban-types": ["error"],
+        "@typescript-eslint/prefer-optional-chain": ["error"],
+        "object-curly-newline": [
+            "error",
+            {
+                "multiline": true,
+                "consistent": true
+            }
+        ],
+        "import/no-anonymous-default-export": ["error", { "allowCallExpression": false }]
+    }
+}
