@@ -5,7 +5,7 @@ import { mongodb } from './mongodb';
 @Module({
     imports: [
         ConfigModule.forRoot({
-            envFilePath: '.env',
+            envFilePath: `.${process.env.NODE_ENV}.env`,
         }),
         mongodb,
     ],
