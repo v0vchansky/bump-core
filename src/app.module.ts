@@ -5,9 +5,9 @@ import { AppService } from './app.service';
 
 @Module({
     imports: [
-        MongooseModule.forRoot(
-            'mongodb://developer:Tester01@rc1b-6fuift4umjrvb4fj.mdb.yandexcloud.net:27018/?replicaSet=rs01&authSource=bump-development',
-        ),
+        // MongooseModule.forRoot(
+        //     'mongodb://developer:Tester01@rc1b-6fuift4umjrvb4fj.mdb.yandexcloud.net:27018/?replicaSet=rs01&authSource=bump-development',
+        // ),
     ],
     controllers: [AppController],
     providers: [AppService],
