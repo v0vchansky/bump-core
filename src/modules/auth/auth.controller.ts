@@ -2,7 +2,8 @@ import { Body, Controller, HttpException, Post } from '@nestjs/common';
 
 import { UserDocument } from '../user/schemas/user.schema';
 import { AuthService } from './auth.service';
-import { IJWTTokenReponse } from './auth.types';
+import { ISubmitLoginResponse } from './auth.types';
+import { AuthAuthenticationDto } from './dto/auth-authentication.dto';
 import { AuthLoginDto } from './dto/auth-login.dto';
 import { AuthSubmitLoginDto } from './dto/auth-submit-login.dto';
 
@@ -16,7 +17,12 @@ export class AuthController {
     }
 
     @Post('submitLogin')
-    async submitLogin(@Body() dto: AuthSubmitLoginDto): Promise<IJWTTokenReponse | HttpException> {
+    async submitLogin(@Body() dto: AuthSubmitLoginDto): Promise<ISubmitLoginResponse | HttpException> {
         return this.authService.submitLogin(dto);
+    }
+
+    @Post('authentication')
+    async authentication(@Body() dto: AuthAuthenticationDto) {
+        return await this.authService.authentication(dto);
     }
 }

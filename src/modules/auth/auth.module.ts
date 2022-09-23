@@ -14,10 +14,8 @@ import { AuthService } from './auth.service';
         UserModule,
         JwtModule.register({
             secret: process.env.JWT_SECRET_KEY || 'SECRET',
-            signOptions: {
-                expiresIn: '300d',
-            },
         }),
     ],
+    exports: [JwtModule],
 })
 export class AuthModule {}

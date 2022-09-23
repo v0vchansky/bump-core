@@ -33,7 +33,6 @@ export class VerificationService {
     private async _createCode(code: string, phone: string): Promise<void> {
         const isCodeExist = Boolean(await this.verificationRepository.findOne({ code, phone }));
 
-        // если есть такой код то удаляем его
         if (isCodeExist) {
             await this.verificationRepository.deleteOne({ code, phone });
         }
