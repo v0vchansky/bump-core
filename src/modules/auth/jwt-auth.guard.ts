@@ -1,6 +1,7 @@
 import { CanActivate, ExecutionContext, HttpException, HttpStatus, Injectable } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { Observable } from 'rxjs';
+import { InternalHttpException, InternalHttpExceptionErrorCode } from 'src/core/http/internalHttpException';
 
 @Injectable()
 export class JwtAuthGuard implements CanActivate {
@@ -15,7 +16,11 @@ export class JwtAuthGuard implements CanActivate {
             const token = authHeader.split(' ')[1];
 
             if (bearer !== 'Bearer' || !token) {
-                throw new HttpException('Пользователь не авторизован', HttpStatus.UNAUTHORIZED);
+                throw new InternalHttpException({
+                    errorCode: InternalHttpExceptionErrorCode.WrongAccessToken,
+                    message: 'Пользователь не авторизован',
+                    status: HttpStatus.UNAUTHORIZED,
+                });
             }
 
             const user = this.jwtService.verify(token);
@@ -24,7 +29,11 @@ export class JwtAuthGuard implements CanActivate {
 
             return true;
         } catch (e) {
-            throw new HttpException('Пользователь не авторизован или истек RefreshToken', HttpStatus.UNAUTHORIZED);
+            throw new InternalHttpException({
+                errorCode: InternalHttpExceptionErrorCode.WrongAccessToken,
+                message: 'Пользователь не авторизован',
+                status: HttpStatus.UNAUTHORIZED,
+            });
         }
     }
 }

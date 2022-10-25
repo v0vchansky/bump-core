@@ -1,6 +1,8 @@
 import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
-import * as moment from 'moment';
+import { addSeconds } from 'date-fns';
+import { InternalHttpException, InternalHttpExceptionErrorCode } from 'src/core/http/internalHttpException';
+import { DtoWithDateHeader } from 'src/core/models/headers';
 
 import { VerificationService } from '../Verification/Verification.service';
 import { UserDocument } from '../user/schemas/user.schema';
@@ -31,52 +33,60 @@ export class AuthService {
         return user;
     }
 
-    async submitLogin(dto: AuthSubmitLoginDto): Promise<ISubmitLoginResponse | HttpException> {
-        const { phone, userId, code } = dto;
+    async submitLogin(dto: DtoWithDateHeader<AuthSubmitLoginDto>): Promise<ISubmitLoginResponse | HttpException> {
+        const { phone, code, date } = dto;
 
         const isCorrectCode = await this.verificationService.verifyCode({ code, phone });
 
         if (isCorrectCode) {
             return {
-                accessToken: this._generateAccessToken(phone, userId),
-                refreshToken: this._generateRefreshToken(phone, userId),
+                accessToken: this._generateAccessToken(phone, date),
+                refreshToken: this._generateRefreshToken(phone, date),
             };
         }
 
-        throw new HttpException('Неверный код', HttpStatus.BAD_REQUEST);
+        throw new InternalHttpException({
+            errorCode: InternalHttpExceptionErrorCode.WrongAuthCode,
+            message: 'Неверный код',
+            status: HttpStatus.BAD_REQUEST,
+        });
     }
 
-    async authentication(dto: AuthAuthenticationDto): Promise<IJWTTokenReponse> {
-        const { refreshToken } = dto;
+    async authentication(dto: DtoWithDateHeader<AuthAuthenticationDto>): Promise<IJWTTokenReponse> {
+        const { refreshToken, date } = dto;
 
         try {
             const payload = this.jwtService.verify(refreshToken);
 
-            return this._generateAccessToken(payload.phone, payload.id);
+            return this._generateAccessToken(payload.phone, date);
         } catch (e) {
-            throw new HttpException('Пользователь не авторизован', HttpStatus.UNAUTHORIZED);
+            throw new InternalHttpException({
+                errorCode: InternalHttpExceptionErrorCode.WrongRefreshToken,
+                message: 'Пользователь не авторизован',
+                status: HttpStatus.UNAUTHORIZED,
+            });
         }
     }
 
-    private _generateAccessToken(phone: string, id: string): IJWTTokenReponse {
-        const payload = { id, phone };
+    private _generateAccessToken(phone: string, date: string): IJWTTokenReponse {
+        const payload = { phone };
 
-        const seconds = 1800; // 30 минут
+        const seconds = 3600; // 1 час - 3600 секунд
 
         return {
             token: this.jwtService.sign(payload, { expiresIn: seconds }),
-            endTime: moment().add(seconds, 'seconds'),
+            endTime: addSeconds(new Date(date), seconds).toISOString(),
         };
     }
 
-    private _generateRefreshToken(phone: string, id: string): IJWTTokenReponse {
-        const payload = { id, phone };
+    private _generateRefreshToken(phone: string, date: string): IJWTTokenReponse {
+        const payload = { phone };
 
-        const seconds = 31536000; // 1 год
+        const seconds = 31536000 * 2; // 1 год - 31536000 секунд
 
         return {
             token: this.jwtService.sign(payload, { expiresIn: seconds }),
-            endTime: moment().add(seconds, 'seconds'),
+            endTime: addSeconds(new Date(date), seconds).toISOString(),
         };
     }
 }

@@ -1,4 +1,5 @@
-import { Body, Controller, HttpException, Post } from '@nestjs/common';
+import { Body, Controller, Headers, HttpException, Post } from '@nestjs/common';
+import { ReqHeaders } from 'src/core/models/headers';
 
 import { UserDocument } from '../user/schemas/user.schema';
 import { AuthService } from './auth.service';
@@ -17,12 +18,15 @@ export class AuthController {
     }
 
     @Post('submitLogin')
-    async submitLogin(@Body() dto: AuthSubmitLoginDto): Promise<ISubmitLoginResponse | HttpException> {
-        return this.authService.submitLogin(dto);
+    async submitLogin(
+        @Headers() headers: ReqHeaders,
+        @Body() dto: AuthSubmitLoginDto,
+    ): Promise<ISubmitLoginResponse | HttpException> {
+        return this.authService.submitLogin({ ...dto, date: headers.date });
     }
 
     @Post('authentication')
-    async authentication(@Body() dto: AuthAuthenticationDto) {
-        return await this.authService.authentication(dto);
+    async authentication(@Headers() headers: ReqHeaders, @Body() dto: AuthAuthenticationDto) {
+        return await this.authService.authentication({ ...dto, date: headers.date });
     }
 }

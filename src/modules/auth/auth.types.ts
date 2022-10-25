@@ -1,8 +1,8 @@
-import { Moment } from 'moment';
+// import { Moment } from 'moment';
 
 export interface IJWTTokenReponse {
     token: string;
-    endTime: Moment;
+    endTime: string;
 }
 
 export interface ISubmitLoginResponse {
