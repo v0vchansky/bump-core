@@ -1,12 +1,11 @@
 import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { addSeconds } from 'date-fns';
-import { InternalHttpException, InternalHttpExceptionErrorCode } from 'src/core/http/internalHttpException';
-import { DtoWithDateHeader } from 'src/core/models/headers';
 
+import { InternalHttpException, InternalHttpExceptionErrorCode } from '../../core/http/internalHttpException';
+import { DtoWithDateHeader } from '../../core/models/headers';
 import { VerificationService } from '../Verification/Verification.service';
-import { UserDocument } from '../user/schemas/user.schema';
-import { UserRepository } from '../user/user.repository';
+import { UserService } from '../user/user.service';
 import { IJWTTokenReponse, ISubmitLoginResponse } from './auth.types';
 import { AuthAuthenticationDto } from './dto/auth-authentication.dto';
 import { AuthLoginDto } from './dto/auth-login.dto';
@@ -15,18 +14,14 @@ import { AuthSubmitLoginDto } from './dto/auth-submit-login.dto';
 @Injectable()
 export class AuthService {
     constructor(
-        private verificationService: VerificationService,
         private jwtService: JwtService,
-        private userRepository: UserRepository,
+        private userService: UserService,
+        private verificationService: VerificationService,
     ) {}
 
-    async login(dto: AuthLoginDto): Promise<UserDocument> {
+    async login(dto: AuthLoginDto) {
         const { phone } = dto;
-        let user = await this.userRepository.findOne({ phone });
-
-        if (!user) {
-            user = await this.userRepository.create(dto);
-        }
+        const user = await this.userService.createUserByPhoneIfNotExist(phone);
 
         await this.verificationService.sendCode({ phone });
 

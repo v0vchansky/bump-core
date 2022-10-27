@@ -1,9 +1,9 @@
 import { Module } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
 
-import { mongodb } from './core/mongodb';
 import { VerificationModule } from './modules/Verification/Verification.module';
 import { AuthModule } from './modules/auth/auth.module';
+import { PrismaModule } from './modules/prisma/prisma.module';
 import { UserModule } from './modules/user/user.module';
 
 @Module({
@@ -11,10 +11,10 @@ import { UserModule } from './modules/user/user.module';
         ConfigModule.forRoot({
             envFilePath: `.${process.env.NODE_ENV}.env`,
         }),
-        mongodb,
         UserModule,
         AuthModule,
         VerificationModule,
+        PrismaModule,
     ],
 })
 export class AppModule {}

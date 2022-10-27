@@ -1,7 +1,6 @@
 import { Body, Controller, Headers, HttpException, Post } from '@nestjs/common';
-import { ReqHeaders } from 'src/core/models/headers';
 
-import { UserDocument } from '../user/schemas/user.schema';
+import { ReqHeaders } from '../../core/models/headers';
 import { AuthService } from './auth.service';
 import { ISubmitLoginResponse } from './auth.types';
 import { AuthAuthenticationDto } from './dto/auth-authentication.dto';
@@ -13,7 +12,7 @@ export class AuthController {
     constructor(private authService: AuthService) {}
 
     @Post('login')
-    async login(@Body() dto: AuthLoginDto): Promise<UserDocument> {
+    async login(@Body() dto: AuthLoginDto) {
         return await this.authService.login(dto);
     }
 

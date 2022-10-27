@@ -1,5 +1,8 @@
+tmp/
+temp/
 # compiled output
 /dist
+build/
 /node_modules
 
 # Logs
@@ -36,3 +39,4 @@ lerna-debug.log*
 
 # Configs
 .production.env
+.development.env

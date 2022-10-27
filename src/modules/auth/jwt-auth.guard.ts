@@ -1,7 +1,8 @@
-import { CanActivate, ExecutionContext, HttpException, HttpStatus, Injectable } from '@nestjs/common';
+import { CanActivate, ExecutionContext, HttpStatus, Injectable } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { Observable } from 'rxjs';
-import { InternalHttpException, InternalHttpExceptionErrorCode } from 'src/core/http/internalHttpException';
+
+import { InternalHttpException, InternalHttpExceptionErrorCode } from '../../core/http/internalHttpException';
 
 @Injectable()
 export class JwtAuthGuard implements CanActivate {

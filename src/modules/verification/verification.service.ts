@@ -1,12 +1,12 @@
 import { Injectable } from '@nestjs/common';
 
+import { PrismaService } from '../prisma/prisma.service';
 import { VerificationSendCodeDto } from './dto/verification-send-code.dto';
 import { VerificationVerifyCodeDto } from './dto/verification-verify-code.dto';
-import { VerificationRepository } from './verification.repository';
 
 @Injectable()
 export class VerificationService {
-    constructor(private verificationRepository: VerificationRepository) {}
+    constructor(private readonly prismaService: PrismaService) {}
 
     async sendCode(dto: VerificationSendCodeDto): Promise<void> {
         const { phone } = dto;
@@ -19,10 +19,16 @@ export class VerificationService {
 
     async verifyCode(dto: VerificationVerifyCodeDto): Promise<boolean> {
         const { code, phone } = dto;
-        const result = await this.verificationRepository.findOne({ phone: phone, code: code });
+
+        const result = await this.prismaService.verifications.findFirst({
+            where: {
+                phone: phone,
+                code: code,
+            },
+        });
 
         if (result) {
-            await this.verificationRepository.deleteOne({ code });
+            await this.prismaService.verifications.delete({ where: { uuid: result.uuid } });
 
             return true;
         }
@@ -31,12 +37,12 @@ export class VerificationService {
     }
 
     private async _createCode(code: string, phone: string): Promise<void> {
-        const isCodeExist = Boolean(await this.verificationRepository.findOne({ code, phone }));
+        const existedCode = await this.prismaService.verifications.findFirst({ where: { code, phone } });
 
-        if (isCodeExist) {
-            await this.verificationRepository.deleteOne({ code, phone });
+        if (existedCode) {
+            await this.prismaService.verifications.delete({ where: { uuid: existedCode.uuid } });
         }
 
-        await this.verificationRepository.create({ phone, code });
+        await this.prismaService.verifications.create({ data: { phone, code } });
     }
 }
