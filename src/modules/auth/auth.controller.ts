@@ -16,7 +16,7 @@ export class AuthController {
         return await this.authService.login(dto);
     }
 
-    @Post('submitLogin')
+    @Post('submit_login')
     async submitLogin(
         @Headers() headers: ReqHeaders,
         @Body() dto: AuthSubmitLoginDto,

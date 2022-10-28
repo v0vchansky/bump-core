@@ -26,4 +26,12 @@ export class UserService {
             },
         });
     }
+
+    async getUserByPhone(phone: string) {
+        return await this.prismaService.users.findFirst({
+            where: {
+                phone,
+            },
+        });
+    }
 }

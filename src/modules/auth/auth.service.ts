@@ -6,7 +6,7 @@ import { InternalHttpException, InternalHttpExceptionErrorCode } from '../../cor
 import { DtoWithDateHeader } from '../../core/models/headers';
 import { VerificationService } from '../Verification/Verification.service';
 import { UserService } from '../user/user.service';
-import { IJWTTokenReponse, ISubmitLoginResponse } from './auth.types';
+import { IJWTServiceVerifyPayloadResult, IJWTTokenReponse, ISubmitLoginResponse } from './auth.types';
 import { AuthAuthenticationDto } from './dto/auth-authentication.dto';
 import { AuthLoginDto } from './dto/auth-login.dto';
 import { AuthSubmitLoginDto } from './dto/auth-submit-login.dto';
@@ -32,11 +32,12 @@ export class AuthService {
         const { phone, code, date } = dto;
 
         const isCorrectCode = await this.verificationService.verifyCode({ code, phone });
+        const user = await this.userService.getUserByPhone(phone);
 
         if (isCorrectCode) {
             return {
-                accessToken: this._generateAccessToken(phone, date),
-                refreshToken: this._generateRefreshToken(phone, date),
+                accessToken: this._generateAccessToken(user.uuid, phone, date),
+                refreshToken: this._generateRefreshToken(user.uuid, phone, date),
             };
         }
 
@@ -51,9 +52,9 @@ export class AuthService {
         const { refreshToken, date } = dto;
 
         try {
-            const payload = this.jwtService.verify(refreshToken);
+            const payload = this.jwtService.verify<IJWTServiceVerifyPayloadResult>(refreshToken);
 
-            return this._generateAccessToken(payload.phone, date);
+            return this._generateAccessToken(payload.uuid, payload.phone, date);
         } catch (e) {
             throw new InternalHttpException({
                 errorCode: InternalHttpExceptionErrorCode.WrongRefreshToken,
@@ -63,8 +64,8 @@ export class AuthService {
         }
     }
 
-    private _generateAccessToken(phone: string, date: string): IJWTTokenReponse {
-        const payload = { phone };
+    private _generateAccessToken(uuid: string, phone: string, date: string): IJWTTokenReponse {
+        const payload = { uuid, phone };
 
         const seconds = 3600; // 1 час - 3600 секунд
 
@@ -74,8 +75,8 @@ export class AuthService {
         };
     }
 
-    private _generateRefreshToken(phone: string, date: string): IJWTTokenReponse {
-        const payload = { phone };
+    private _generateRefreshToken(uuid: string, phone: string, date: string): IJWTTokenReponse {
+        const payload = { uuid, phone };
 
         const seconds = 31536000 * 2; // 1 год - 31536000 секунд
 

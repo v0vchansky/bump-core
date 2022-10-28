@@ -1,5 +1,3 @@
-// import { Moment } from 'moment';
-
 export interface IJWTTokenReponse {
     token: string;
     endTime: string;
@@ -8,4 +6,9 @@ export interface IJWTTokenReponse {
 export interface ISubmitLoginResponse {
     accessToken: IJWTTokenReponse;
     refreshToken: IJWTTokenReponse;
+}
+
+export interface IJWTServiceVerifyPayloadResult {
+    uuid: string;
+    phone: string;
 }

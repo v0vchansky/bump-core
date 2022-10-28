@@ -3,6 +3,7 @@ import { JwtService } from '@nestjs/jwt';
 import { Observable } from 'rxjs';
 
 import { InternalHttpException, InternalHttpExceptionErrorCode } from '../../core/http/internalHttpException';
+import { IJWTServiceVerifyPayloadResult } from './auth.types';
 
 @Injectable()
 export class JwtAuthGuard implements CanActivate {
@@ -24,9 +25,9 @@ export class JwtAuthGuard implements CanActivate {
                 });
             }
 
-            const user = this.jwtService.verify(token);
+            const user = this.jwtService.verify<IJWTServiceVerifyPayloadResult>(token);
 
-            req.user = user;
+            req.userJwtPayload = user;
 
             return true;
         } catch (e) {
