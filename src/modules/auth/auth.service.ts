@@ -1,8 +1,10 @@
 import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
+import { Users } from '@prisma/client';
 import { addSeconds } from 'date-fns';
 
 import { InternalHttpException, InternalHttpExceptionErrorCode } from '../../core/http/internalHttpException';
+import { InternalHttpResponse } from '../../core/http/internalHttpResponse';
 import { DtoWithDateHeader } from '../../core/models/headers';
 import { VerificationService } from '../Verification/Verification.service';
 import { UserService } from '../user/user.service';
@@ -19,26 +21,30 @@ export class AuthService {
         private verificationService: VerificationService,
     ) {}
 
-    async login(dto: AuthLoginDto) {
+    async login(dto: AuthLoginDto): Promise<InternalHttpResponse<Users>> {
         const { phone } = dto;
-        const user = await this.userService.createUserByPhoneIfNotExist(phone);
+        const user = await this.userService._createUserByPhoneIfNotExist(phone);
 
         await this.verificationService.sendCode({ phone });
 
-        return user;
+        return new InternalHttpResponse({ data: user });
     }
 
-    async submitLogin(dto: DtoWithDateHeader<AuthSubmitLoginDto>): Promise<ISubmitLoginResponse | HttpException> {
+    async submitLogin(
+        dto: DtoWithDateHeader<AuthSubmitLoginDto>,
+    ): Promise<InternalHttpResponse<ISubmitLoginResponse> | HttpException> {
         const { phone, code, date } = dto;
 
         const isCorrectCode = await this.verificationService.verifyCode({ code, phone });
         const user = await this.userService.getUserByPhone(phone);
 
         if (isCorrectCode) {
-            return {
-                accessToken: this._generateAccessToken(user.uuid, phone, date),
-                refreshToken: this._generateRefreshToken(user.uuid, phone, date),
-            };
+            return new InternalHttpResponse({
+                data: {
+                    accessToken: this._generateAccessToken(user.uuid, phone, date),
+                    refreshToken: this._generateRefreshToken(user.uuid, phone, date),
+                },
+            });
         }
 
         throw new InternalHttpException({
@@ -48,13 +54,16 @@ export class AuthService {
         });
     }
 
-    async authentication(dto: DtoWithDateHeader<AuthAuthenticationDto>): Promise<IJWTTokenReponse> {
+    async authentication(
+        dto: DtoWithDateHeader<AuthAuthenticationDto>,
+    ): Promise<InternalHttpResponse<IJWTTokenReponse>> {
         const { refreshToken, date } = dto;
 
         try {
             const payload = this.jwtService.verify<IJWTServiceVerifyPayloadResult>(refreshToken);
+            const token = this._generateAccessToken(payload.uuid, payload.phone, date);
 
-            return this._generateAccessToken(payload.uuid, payload.phone, date);
+            return new InternalHttpResponse({ data: token });
         } catch (e) {
             throw new InternalHttpException({
                 errorCode: InternalHttpExceptionErrorCode.WrongRefreshToken,

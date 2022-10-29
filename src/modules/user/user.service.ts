@@ -7,16 +7,14 @@ import { UserGetDto } from './dto/user-get.dto';
 export class UserService {
     constructor(private readonly prismaService: PrismaService) {}
 
-    async createUserByPhoneIfNotExist(phone: string) {
-        const user = await this.prismaService.users.findFirst({ where: { phone } });
+    async _createUserByPhoneIfNotExist(phone: string) {
+        let user = await this.prismaService.users.findFirst({ where: { phone } });
 
         if (!user) {
-            const user = await this.prismaService.users.create({ data: { phone } });
-
-            return user;
+            user = await this.prismaService.users.create({ data: { phone } });
         }
 
-        return false;
+        return user;
     }
 
     async getUser(dto: UserGetDto) {

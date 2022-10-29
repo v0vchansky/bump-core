@@ -1,8 +1,11 @@
-import { Body, Controller, Headers, HttpException, Post } from '@nestjs/common';
+import { Body, Controller, Headers, Post } from '@nestjs/common';
+import { Users } from '@prisma/client';
 
+import { InternalHttpException } from '../../core/http/internalHttpException';
+import { InternalHttpResponse } from '../../core/http/internalHttpResponse';
 import { ReqHeaders } from '../../core/models/headers';
 import { AuthService } from './auth.service';
-import { ISubmitLoginResponse } from './auth.types';
+import { IJWTTokenReponse, ISubmitLoginResponse } from './auth.types';
 import { AuthAuthenticationDto } from './dto/auth-authentication.dto';
 import { AuthLoginDto } from './dto/auth-login.dto';
 import { AuthSubmitLoginDto } from './dto/auth-submit-login.dto';
@@ -12,7 +15,7 @@ export class AuthController {
     constructor(private authService: AuthService) {}
 
     @Post('login')
-    async login(@Body() dto: AuthLoginDto) {
+    async login(@Body() dto: AuthLoginDto): Promise<InternalHttpResponse<Users>> {
         return await this.authService.login(dto);
     }
 
@@ -20,12 +23,15 @@ export class AuthController {
     async submitLogin(
         @Headers() headers: ReqHeaders,
         @Body() dto: AuthSubmitLoginDto,
-    ): Promise<ISubmitLoginResponse | HttpException> {
+    ): Promise<InternalHttpResponse<ISubmitLoginResponse> | InternalHttpException> {
         return this.authService.submitLogin({ ...dto, date: headers.date });
     }
 
     @Post('authentication')
-    async authentication(@Headers() headers: ReqHeaders, @Body() dto: AuthAuthenticationDto) {
+    async authentication(
+        @Headers() headers: ReqHeaders,
+        @Body() dto: AuthAuthenticationDto,
+    ): Promise<InternalHttpResponse<IJWTTokenReponse> | InternalHttpException> {
         return await this.authService.authentication({ ...dto, date: headers.date });
     }
 }
