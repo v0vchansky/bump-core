@@ -1,6 +1,7 @@
-import { CanActivate, ExecutionContext, HttpStatus, Injectable } from '@nestjs/common';
+import { CanActivate, ExecutionContext, Injectable } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { Observable } from 'rxjs';
+import { InternalHttpStatus } from 'src/core/http/internalHttpStatus';
 
 import { InternalHttpException, InternalHttpExceptionErrorCode } from '../../core/http/internalHttpException';
 import { IJWTServiceVerifyPayloadResult } from './auth.types';
@@ -21,7 +22,7 @@ export class JwtAuthGuard implements CanActivate {
                 throw new InternalHttpException({
                     errorCode: InternalHttpExceptionErrorCode.WrongAccessToken,
                     message: 'Пользователь не авторизован',
-                    status: HttpStatus.UNAUTHORIZED,
+                    status: InternalHttpStatus.UNAUTHORIZED,
                 });
             }
 
@@ -34,7 +35,7 @@ export class JwtAuthGuard implements CanActivate {
             throw new InternalHttpException({
                 errorCode: InternalHttpExceptionErrorCode.WrongAccessToken,
                 message: 'Пользователь не авторизован',
-                status: HttpStatus.UNAUTHORIZED,
+                status: InternalHttpStatus.UNAUTHORIZED,
             });
         }
     }

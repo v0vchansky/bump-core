@@ -1,16 +1,16 @@
-import { HttpStatus } from '@nestjs/common';
+import { InternalHttpStatus } from './internalHttpStatus';
 
 interface IInternalHttpResponse<T> {
-    status?: HttpStatus;
+    status?: InternalHttpStatus;
     data?: T;
 }
 
-export class InternalHttpResponse<T> {
-    private readonly status: HttpStatus;
+export class InternalHttpResponse<T = undefined> {
+    private readonly status: InternalHttpStatus;
     private readonly data: T;
 
-    constructor({ status, data }: IInternalHttpResponse<T>) {
-        this.status = status || HttpStatus.OK;
-        this.data = data;
+    constructor(params?: IInternalHttpResponse<T> | undefined) {
+        this.status = params?.status | InternalHttpStatus.OK;
+        this.data = params?.data;
     }
 }

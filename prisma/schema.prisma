@@ -16,6 +16,9 @@ datasource db {
 model Users {
     uuid String @id @unique @default(uuid())
     phone String @unique
+    birthday DateTime? @db.Date
+    userName String? @unique
+    displayName String?
     createdAt DateTime @default(now())
     updatedAt DateTime @updatedAt
     geolocations Geolocations[]

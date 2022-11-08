@@ -1,13 +1,16 @@
-import { HttpException, HttpStatus } from '@nestjs/common';
+import { HttpException } from '@nestjs/common';
+
+import { InternalHttpStatus } from './internalHttpStatus';
 
 export const enum InternalHttpExceptionErrorCode {
     WrongAuthCode = 'wrong_auth_code',
     WrongRefreshToken = 'wrong_refresh_token',
     WrongAccessToken = 'wrong_access_token',
+    NonUnique = 'non_unique',
 }
 
 interface IInternalHttpException {
-    status: HttpStatus;
+    status: InternalHttpStatus;
     message: string;
     errorCode?: InternalHttpExceptionErrorCode;
 }

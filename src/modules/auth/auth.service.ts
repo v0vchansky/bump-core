@@ -1,7 +1,8 @@
-import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
+import { HttpException, Injectable } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { Users } from '@prisma/client';
 import { addSeconds } from 'date-fns';
+import { InternalHttpStatus } from 'src/core/http/internalHttpStatus';
 
 import { InternalHttpException, InternalHttpExceptionErrorCode } from '../../core/http/internalHttpException';
 import { InternalHttpResponse } from '../../core/http/internalHttpResponse';
@@ -50,7 +51,7 @@ export class AuthService {
         throw new InternalHttpException({
             errorCode: InternalHttpExceptionErrorCode.WrongAuthCode,
             message: 'Неверный код',
-            status: HttpStatus.BAD_REQUEST,
+            status: InternalHttpStatus.BAD_REQUEST,
         });
     }
 
@@ -68,7 +69,7 @@ export class AuthService {
             throw new InternalHttpException({
                 errorCode: InternalHttpExceptionErrorCode.WrongRefreshToken,
                 message: 'Пользователь не авторизован',
-                status: HttpStatus.UNAUTHORIZED,
+                status: InternalHttpStatus.UNAUTHORIZED,
             });
         }
     }

@@ -1,7 +1,10 @@
 import { Body, Controller, Post, UseGuards } from '@nestjs/common';
+import { Users } from '@prisma/client';
+import { InternalHttpResponse } from 'src/core/http/internalHttpResponse';
 
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
-import { UserGetDto } from './dto/user-get.dto';
+import { SetProfileInfoDto } from './dto/set-profile-info.dto';
+import { UseUser } from './user.decorators';
 import { UserService } from './user.service';
 
 @Controller('user')
@@ -9,8 +12,14 @@ export class UserController {
     constructor(private userService: UserService) {}
 
     @UseGuards(JwtAuthGuard)
-    @Post('getUser')
-    async getUser(@Body() dto: UserGetDto) {
-        return await this.userService.getUser(dto);
+    @Post('get_user')
+    async setUser(@UseUser() user): Promise<InternalHttpResponse<Users>> {
+        return await this.userService.getUser(user);
+    }
+
+    @UseGuards(JwtAuthGuard)
+    @Post('set_profile_info')
+    async setProfileInfo(@UseUser() user, @Body() dto: SetProfileInfoDto): Promise<InternalHttpResponse> {
+        return await this.userService.setProfileInfo(dto, user);
     }
 }

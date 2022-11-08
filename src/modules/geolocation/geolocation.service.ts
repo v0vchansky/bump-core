@@ -1,6 +1,7 @@
-import { HttpStatus, Injectable } from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
 import { InternalHttpException } from 'src/core/http/internalHttpException';
 import { InternalHttpResponse } from 'src/core/http/internalHttpResponse';
+import { InternalHttpStatus } from 'src/core/http/internalHttpStatus';
 
 import { IJWTServiceVerifyPayloadResult } from '../auth/auth.types';
 import { PrismaService } from '../prisma/prisma.service';
@@ -19,7 +20,7 @@ export class GeolocationService {
             return new InternalHttpResponse({ data: undefined });
         } catch (_e) {
             throw new InternalHttpException({
-                status: HttpStatus.INTERNAL_SERVER_ERROR,
+                status: InternalHttpStatus.INTERNAL_SERVER_ERROR,
                 message: 'Не удалось добавить точки геолокаций',
             });
         }
