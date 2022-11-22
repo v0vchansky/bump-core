@@ -7,6 +7,7 @@ import { InternalHttpException, InternalHttpExceptionErrorCode } from '../../cor
 import { IJWTServiceVerifyPayloadResult } from '../auth/auth.types';
 import { PrismaService } from '../prisma/prisma.service';
 import { SetProfileInfoDto } from './dto/set-profile-info.dto';
+import { SetProfileInfoFieldName } from './user.types';
 
 @Injectable()
 export class UserService {
@@ -31,8 +32,9 @@ export class UserService {
     }
 
     async setProfileInfo(dto: SetProfileInfoDto, user: IJWTServiceVerifyPayloadResult): Promise<InternalHttpResponse> {
-        if (dto.unique) {
-            const record = await this.prismaService.users.findUnique({ where: { [dto.fieldName]: dto.fieldValue } });
+        if (dto.fieldName === SetProfileInfoFieldName.UserName) {
+            // eslint-disable-next-line @typescript-eslint/consistent-type-assertions
+            const record = await this.prismaService.users.findUnique({ where: { userName: dto.fieldValue as string } });
 
             if (record && record.uuid !== user.uuid) {
                 throw new InternalHttpException({

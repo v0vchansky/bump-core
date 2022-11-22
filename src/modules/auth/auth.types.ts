@@ -1,9 +1,12 @@
+import { Users } from '@prisma/client';
+
 export interface IJWTTokenReponse {
     token: string;
     endTime: string;
 }
 
 export interface ISubmitLoginResponse {
+    user: Users;
     accessToken: IJWTTokenReponse;
     refreshToken: IJWTTokenReponse;
 }

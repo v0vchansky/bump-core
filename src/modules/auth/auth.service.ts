@@ -40,8 +40,9 @@ export class AuthService {
         const user = await this.userService.getUserByPhone(phone);
 
         if (isCorrectCode) {
-            return new InternalHttpResponse({
+            return new InternalHttpResponse<ISubmitLoginResponse>({
                 data: {
+                    user,
                     accessToken: this._generateAccessToken(user.uuid, phone, date),
                     refreshToken: this._generateRefreshToken(user.uuid, phone, date),
                 },
