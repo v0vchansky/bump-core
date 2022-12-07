@@ -5,6 +5,7 @@ import { VerificationModule } from './modules/Verification/Verification.module';
 import { AuthModule } from './modules/auth/auth.module';
 import { GeolocationModule } from './modules/geolocation/geolocation.module';
 import { PrismaModule } from './modules/prisma/prisma.module';
+import { RelationModule } from './modules/relation/relation.module';
 import { UserModule } from './modules/user/user.module';
 
 @Module({
@@ -17,6 +18,7 @@ import { UserModule } from './modules/user/user.module';
         VerificationModule,
         GeolocationModule,
         PrismaModule,
+        RelationModule,
     ],
 })
 export class AppModule {}

@@ -1,17 +1,23 @@
 import { Injectable } from '@nestjs/common';
-import { Users } from '@prisma/client';
+import { Users, UsersRelations } from '@prisma/client';
 import { InternalHttpResponse } from 'src/core/http/internalHttpResponse';
 import { InternalHttpStatus } from 'src/core/http/internalHttpStatus';
 
 import { InternalHttpException, InternalHttpExceptionErrorCode } from '../../core/http/internalHttpException';
 import { IJWTServiceVerifyPayloadResult } from '../auth/auth.types';
 import { PrismaService } from '../prisma/prisma.service';
+import { reverseRelationTypeMapping } from '../relation/constants';
+import { RelationService } from '../relation/relation.service';
+import { IGetUserRelation, RelationList, RelationRequestType } from '../relation/types';
+import { GetRelationsByTypeDto } from './dto/get-relations-by-type.dto';
+import { SearchByUsernameDto } from './dto/search-by-username.dto';
+import { SendRelationRequestDto } from './dto/send-relation-request.dto';
 import { SetProfileInfoDto } from './dto/set-profile-info.dto';
 import { SetProfileInfoFieldName } from './user.types';
 
 @Injectable()
 export class UserService {
-    constructor(private readonly prismaService: PrismaService) {}
+    constructor(private readonly prismaService: PrismaService, private readonly relationService: RelationService) {}
 
     async _createUserByPhoneIfNotExist(phone: string) {
         let user = await this.prismaService.users.findFirst({ where: { phone } });
@@ -57,5 +63,86 @@ export class UserService {
         const user = await this.prismaService.users.findUnique({ where: { uuid: uuid } });
 
         return new InternalHttpResponse({ data: user });
+    }
+
+    async getRelationsByType(
+        { uuid }: IJWTServiceVerifyPayloadResult,
+        { type }: GetRelationsByTypeDto,
+    ): Promise<InternalHttpResponse<IGetUserRelation[]>> {
+        const relations = await this.relationService.getRelationsByType(uuid, type);
+
+        return new InternalHttpResponse({ data: relations });
+    }
+
+    async searchByUsername(
+        { username }: SearchByUsernameDto,
+        { uuid }: IJWTServiceVerifyPayloadResult,
+    ): Promise<InternalHttpResponse<IGetUserRelation[]>> {
+        const user = await this.prismaService.users.findFirst({
+            where: {
+                userName: username.toLocaleUpperCase(),
+                NOT: [{ displayName: null }, { birthday: null }],
+            },
+            include: { userRelations: true },
+        });
+
+        if (!user) {
+            return new InternalHttpResponse<IGetUserRelation[]>({ data: [] });
+        }
+
+        const relationWithUser = user.userRelations.find(relation => relation.targetUserUuid === uuid);
+
+        let type = RelationList.Nobody;
+
+        if (relationWithUser) {
+            type = reverseRelationTypeMapping[relationWithUser.type];
+        }
+
+        if (user.uuid === uuid) {
+            type = RelationList.You;
+        }
+
+        return new InternalHttpResponse<IGetUserRelation[]>({
+            data: [
+                {
+                    type,
+                    user,
+                },
+            ],
+        });
+    }
+
+    async sendRelationRequest(
+        { to, relationType }: SendRelationRequestDto,
+        { uuid }: IJWTServiceVerifyPayloadResult,
+    ): Promise<InternalHttpResponse | InternalHttpResponse<IGetUserRelation> | InternalHttpException> {
+        switch (relationType) {
+            case RelationRequestType.SendRequestToFriends: {
+                return await this.relationService.sendRequestToFriends(uuid, to);
+            }
+
+            case RelationRequestType.ResolveFriendRequest: {
+                return await this.relationService.resolveFriendRequest(uuid, to);
+            }
+
+            case RelationRequestType.CancelFriendRequest: {
+                return await this.relationService.cancelFriendRequest(uuid, to);
+            }
+
+            case RelationRequestType.RejectFriendRequest: {
+                return await this.relationService.rejectFriendRequest(uuid, to);
+            }
+
+            case RelationRequestType.RemoveFromFriends: {
+                return await this.relationService.removeFromFriends(uuid, to);
+            }
+
+            default: {
+                throw new InternalHttpException({
+                    status: InternalHttpStatus.INTERNAL_SERVER_ERROR,
+                    message: 'Что-то пошло не так',
+                });
+            }
+        }
     }
 }
