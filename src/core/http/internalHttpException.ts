@@ -7,6 +7,7 @@ export const enum InternalHttpExceptionErrorCode {
     WrongRefreshToken = 'wrong_refresh_token',
     WrongAccessToken = 'wrong_access_token',
     NonUnique = 'non_unique',
+    NeedForceUpdateRelations = 'need_force_update_relations',
 }
 
 interface IInternalHttpException {

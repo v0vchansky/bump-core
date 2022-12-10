@@ -1,18 +1,29 @@
 import { Injectable } from '@nestjs/common';
+import { InternalHttpException, InternalHttpExceptionErrorCode } from 'src/core/http/internalHttpException';
 import { InternalHttpResponse } from 'src/core/http/internalHttpResponse';
+import { InternalHttpStatus } from 'src/core/http/internalHttpStatus';
 
-import { PrismaService } from '../prisma/prisma.service';
 import { RelationRepository } from './relation.repository';
 import { IGetUserRelation, RelationList } from './types';
 
 @Injectable()
 export class RelationService {
-    constructor(
-        private readonly prismaService: PrismaService,
-        private readonly relationRepository: RelationRepository,
-    ) {}
+    constructor(private readonly relationRepository: RelationRepository) {}
 
-    async sendRequestToFriends(from: string, to: string): Promise<InternalHttpResponse<IGetUserRelation>> {
+    async sendRequestToFriends(
+        from: string,
+        to: string,
+    ): Promise<InternalHttpResponse<IGetUserRelation> | InternalHttpException> {
+        const allRelations = await this.relationRepository.getAllRelationsBetweenUsers(from, to);
+
+        if (allRelations.length > 0) {
+            throw new InternalHttpException({
+                status: InternalHttpStatus.INTERNAL_SERVER_ERROR,
+                message: 'Это действие недоступно',
+                errorCode: InternalHttpExceptionErrorCode.NeedForceUpdateRelations,
+            });
+        }
+
         await this.relationRepository.removeAllRelationsBetweenUsers(from, to);
 
         await this.relationRepository.createTwoSideRelation(
@@ -31,13 +42,24 @@ export class RelationService {
         return new InternalHttpResponse({ data: relation });
     }
 
-    async resolveFriendRequest(from: string, to: string): Promise<InternalHttpResponse<IGetUserRelation>> {
-        await this.relationRepository.removeRelationByType(
+    async resolveFriendRequest(
+        from: string,
+        to: string,
+    ): Promise<InternalHttpResponse<IGetUserRelation> | InternalHttpException> {
+        const payload = await this.relationRepository.removeRelationByType(
             from,
             to,
             RelationList.IncomingFriendRequest,
             RelationList.OutgoingFriendRequest,
         );
+
+        if (payload.count !== 2) {
+            throw new InternalHttpException({
+                status: InternalHttpStatus.INTERNAL_SERVER_ERROR,
+                message: 'Это действие недоступно',
+                errorCode: InternalHttpExceptionErrorCode.NeedForceUpdateRelations,
+            });
+        }
 
         await this.relationRepository.createTwoSideRelation(from, to, RelationList.Friendship, RelationList.Friendship);
 
@@ -46,30 +68,59 @@ export class RelationService {
         return new InternalHttpResponse({ data: friendship });
     }
 
-    async cancelFriendRequest(from: string, to: string) {
-        await this.relationRepository.removeRelationByType(
+    async cancelFriendRequest(from: string, to: string): Promise<InternalHttpResponse | InternalHttpException> {
+        const payload = await this.relationRepository.removeRelationByType(
             from,
             to,
             RelationList.OutgoingFriendRequest,
             RelationList.IncomingFriendRequest,
         );
 
+        if (payload.count !== 2) {
+            throw new InternalHttpException({
+                status: InternalHttpStatus.INTERNAL_SERVER_ERROR,
+                message: 'Это действие недоступно',
+                errorCode: InternalHttpExceptionErrorCode.NeedForceUpdateRelations,
+            });
+        }
+
         return new InternalHttpResponse();
     }
 
-    async rejectFriendRequest(from: string, to: string) {
-        await this.relationRepository.removeRelationByType(
+    async rejectFriendRequest(from: string, to: string): Promise<InternalHttpResponse | InternalHttpException> {
+        const payload = await this.relationRepository.removeRelationByType(
             from,
             to,
             RelationList.IncomingFriendRequest,
             RelationList.OutgoingFriendRequest,
         );
 
+        if (payload.count !== 2) {
+            throw new InternalHttpException({
+                status: InternalHttpStatus.INTERNAL_SERVER_ERROR,
+                message: 'Это действие недоступно',
+                errorCode: InternalHttpExceptionErrorCode.NeedForceUpdateRelations,
+            });
+        }
+
         return new InternalHttpResponse();
     }
 
-    async removeFromFriends(from: string, to: string) {
-        await this.relationRepository.removeRelationByType(from, to, RelationList.Friendship, RelationList.Friendship);
+    async removeFromFriends(from: string, to: string): Promise<InternalHttpResponse | InternalHttpException> {
+        const payload = await this.relationRepository.removeRelationByType(
+            from,
+            to,
+            RelationList.Friendship,
+            RelationList.Friendship,
+        );
+
+        if (payload.count !== 2) {
+            throw new InternalHttpException({
+                status: InternalHttpStatus.INTERNAL_SERVER_ERROR,
+                message: 'Это действие недоступно',
+                errorCode: InternalHttpExceptionErrorCode.NeedForceUpdateRelations,
+            });
+        }
 
         return new InternalHttpResponse();
     }

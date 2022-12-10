@@ -55,6 +55,23 @@ export class RelationRepository {
         return { type: reverseRelationTypeMapping[relation.type], user: relation.user };
     }
 
+    async getAllRelationsBetweenUsers(from: string, to: string) {
+        return await this.prismaService.usersRelations.findMany({
+            where: {
+                OR: [
+                    {
+                        userUuid: from,
+                        targetUserUuid: to,
+                    },
+                    {
+                        userUuid: to,
+                        targetUserUuid: from,
+                    },
+                ],
+            },
+        });
+    }
+
     async removeAllRelationsBetweenUsers(from: string, to: string) {
         return await this.prismaService.usersRelations.deleteMany({
             where: {

@@ -66,7 +66,7 @@ export class UserService {
     }
 
     async getRelationsByType(
-        { uuid }: IJWTServiceVerifyPayloadResult,
+        uuid: string,
         { type }: GetRelationsByTypeDto,
     ): Promise<InternalHttpResponse<IGetUserRelation[]>> {
         const relations = await this.relationService.getRelationsByType(uuid, type);
