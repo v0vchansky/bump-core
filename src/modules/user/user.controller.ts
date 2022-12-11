@@ -1,11 +1,11 @@
-import { Body, Controller, Post, UseGuards } from '@nestjs/common';
-import { Users } from '@prisma/client';
+import { Body, Controller, Post, UploadedFile, UseGuards, UseInterceptors } from '@nestjs/common';
+import { FileInterceptor } from '@nestjs/platform-express';
 import { InternalHttpException } from 'src/core/http/internalHttpException';
 import { InternalHttpResponse } from 'src/core/http/internalHttpResponse';
 
 import { IJWTServiceVerifyPayloadResult } from '../auth/auth.types';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
-import { IGetUserRelation } from '../relation/types';
+import { IGetUserRelation, IUserWithRelations } from '../relation/types';
 import { GetRelationsByTypeDto } from './dto/get-relations-by-type.dto';
 import { SearchByUsernameDto } from './dto/search-by-username.dto';
 import { SendRelationRequestDto } from './dto/send-relation-request.dto';
@@ -19,7 +19,7 @@ export class UserController {
 
     @UseGuards(JwtAuthGuard)
     @Post('get_user')
-    async setUser(@UseUser() user: IJWTServiceVerifyPayloadResult): Promise<InternalHttpResponse<Users>> {
+    async setUser(@UseUser() user: IJWTServiceVerifyPayloadResult): Promise<InternalHttpResponse<IUserWithRelations>> {
         return await this.userService.getUser(user);
     }
 
@@ -57,5 +57,21 @@ export class UserController {
         @Body() dto: GetRelationsByTypeDto,
     ): Promise<InternalHttpResponse<IGetUserRelation[]>> {
         return await this.userService.getRelationsByType(dto.uuid || user.uuid, dto);
+    }
+
+    @UseGuards(JwtAuthGuard)
+    @Post('upload_avatar')
+    @UseInterceptors(FileInterceptor('image'))
+    async uploadAvatar(
+        @UseUser() user: IJWTServiceVerifyPayloadResult,
+        @UploadedFile() file: Express.Multer.File,
+    ): Promise<InternalHttpResponse<string>> {
+        return await this.userService.uploadAvatar(user, file);
+    }
+
+    @UseGuards(JwtAuthGuard)
+    @Post('delete_avatar')
+    async deleteAvatar(@UseUser() user: IJWTServiceVerifyPayloadResult): Promise<InternalHttpResponse> {
+        return await this.userService.deleteAvatar(user);
     }
 }

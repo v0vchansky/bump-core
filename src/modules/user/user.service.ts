@@ -1,5 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { Users, UsersRelations } from '@prisma/client';
+import * as fs from 'fs';
+import { InjectS3, S3 } from 'nestjs-s3';
 import { InternalHttpResponse } from 'src/core/http/internalHttpResponse';
 import { InternalHttpStatus } from 'src/core/http/internalHttpStatus';
 
@@ -8,7 +10,8 @@ import { IJWTServiceVerifyPayloadResult } from '../auth/auth.types';
 import { PrismaService } from '../prisma/prisma.service';
 import { reverseRelationTypeMapping } from '../relation/constants';
 import { RelationService } from '../relation/relation.service';
-import { IGetUserRelation, RelationList, RelationRequestType } from '../relation/types';
+import { IGetUserRelation, IUserWithRelations, RelationList, RelationRequestType } from '../relation/types';
+import { S3Service } from '../s3/s3.service';
 import { GetRelationsByTypeDto } from './dto/get-relations-by-type.dto';
 import { SearchByUsernameDto } from './dto/search-by-username.dto';
 import { SendRelationRequestDto } from './dto/send-relation-request.dto';
@@ -17,7 +20,11 @@ import { SetProfileInfoFieldName } from './user.types';
 
 @Injectable()
 export class UserService {
-    constructor(private readonly prismaService: PrismaService, private readonly relationService: RelationService) {}
+    constructor(
+        private readonly s3: S3Service,
+        private readonly prismaService: PrismaService,
+        private readonly relationService: RelationService,
+    ) {}
 
     async _createUserByPhoneIfNotExist(phone: string) {
         let user = await this.prismaService.users.findFirst({ where: { phone } });
@@ -59,8 +66,11 @@ export class UserService {
         return new InternalHttpResponse();
     }
 
-    async getUser({ uuid }: IJWTServiceVerifyPayloadResult): Promise<InternalHttpResponse<Users>> {
-        const user = await this.prismaService.users.findUnique({ where: { uuid: uuid } });
+    async getUser({ uuid }: IJWTServiceVerifyPayloadResult): Promise<InternalHttpResponse<IUserWithRelations>> {
+        const user = await this.prismaService.users.findUnique({
+            where: { uuid: uuid },
+            include: { userRelations: true },
+        });
 
         return new InternalHttpResponse({ data: user });
     }
@@ -144,5 +154,41 @@ export class UserService {
                 });
             }
         }
+    }
+
+    async uploadAvatar(
+        { uuid }: IJWTServiceVerifyPayloadResult,
+        file: Express.Multer.File,
+    ): Promise<InternalHttpResponse<string>> {
+        const user = await this.prismaService.users.findUnique({ where: { uuid } });
+
+        if (user.avatarUrl) {
+            await this.deleteAvatar(user);
+        }
+
+        const avatarUrl = await this.s3.uploadAvatar(file.buffer);
+
+        await this.prismaService.users.update({ where: { uuid }, data: { avatarUrl } });
+
+        return new InternalHttpResponse<string>({
+            data: avatarUrl,
+        });
+    }
+
+    async deleteAvatar({ uuid }: IJWTServiceVerifyPayloadResult): Promise<InternalHttpResponse> {
+        const user = await this.prismaService.users.findUnique({ where: { uuid } });
+
+        if (user.avatarUrl) {
+            await this.s3.deleteAvatar(user.avatarUrl);
+
+            await this.prismaService.users.update({ where: { uuid }, data: { avatarUrl: null } });
+
+            return new InternalHttpResponse();
+        }
+
+        throw new InternalHttpException({
+            status: InternalHttpStatus.INTERNAL_SERVER_ERROR,
+            message: 'Что-то пошло не так',
+        });
     }
 }

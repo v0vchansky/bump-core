@@ -16,9 +16,11 @@ export const enum RelationRequestType {
     RemoveFromFriends = 'RemoveFromFriends',
 }
 
+export type IUserWithRelations = Users & {
+    userRelations: UsersRelations[];
+};
+
 export interface IGetUserRelation {
     type: RelationList | string;
-    user: Users & {
-        userRelations: UsersRelations[];
-    };
+    user: IUserWithRelations;
 }
