@@ -1,7 +1,4 @@
 import { Injectable } from '@nestjs/common';
-import { Users, UsersRelations } from '@prisma/client';
-import * as fs from 'fs';
-import { InjectS3, S3 } from 'nestjs-s3';
 import { InternalHttpResponse } from 'src/core/http/internalHttpResponse';
 import { InternalHttpStatus } from 'src/core/http/internalHttpStatus';
 

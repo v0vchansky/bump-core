@@ -24,6 +24,7 @@ model Users {
     avatarUrl String?
     geolocations Geolocations[]
     userRelations UsersRelations[]
+    shadowActions ShadowActions[]
 }
 
 model Verifications {
@@ -51,4 +52,13 @@ model UsersRelations {
     userUuid String
     targetUserUuid String
     type String
+}
+
+model ShadowActions {
+    uuid String @id @unique @default(uuid())
+    type String
+    targetUserUuid String
+    targetUser Users @relation(fields: [targetUserUuid], references: [uuid])
+    createdAt DateTime @default(now())
+    onCompleteAction Json?
 }
