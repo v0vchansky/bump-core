@@ -1,4 +1,5 @@
 import { Injectable } from '@nestjs/common';
+import { Prisma } from '@prisma/client';
 import { addMinutes, isAfter } from 'date-fns';
 import * as admin from 'firebase-admin';
 import { InternalHttpResponse } from 'src/core/http/internalHttpResponse';
@@ -6,7 +7,7 @@ import { InternalHttpResponse } from 'src/core/http/internalHttpResponse';
 import { IJWTServiceVerifyPayloadResult } from '../auth/auth.types';
 import { PrismaService } from '../prisma/prisma.service';
 import { CompleteShadowActionDto } from './dto/complete-shadow-action.dto';
-import { OnCompleteAction, ShadowAction } from './types';
+import { OnCompleteAction, ShadowAction, ShadowActionPayload } from './types';
 
 @Injectable()
 export class ShadowActionsService {
@@ -57,11 +58,22 @@ export class ShadowActionsService {
         return new InternalHttpResponse({ data: action });
     }
 
-    async sendShadowAction(targetUserUuid: string, type: ShadowAction, onCompleteAction: OnCompleteAction | null) {
+    async sendShadowAction(
+        targetUserUuid: string,
+        type: ShadowAction,
+        onCompleteAction: OnCompleteAction | null,
+        payload: ShadowActionPayload,
+    ) {
         await this.clearExpiredActions(targetUserUuid);
 
         const createdAction = await this.prismaService.shadowActions.create({
-            data: { targetUserUuid, type, onCompleteAction: onCompleteAction },
+            data: {
+                targetUserUuid,
+                type,
+                onCompleteAction,
+                // eslint-disable-next-line @typescript-eslint/consistent-type-assertions
+                payload: payload as unknown as Prisma.JsonValue,
+            },
         });
         const ref = admin.database().ref(`shadowActions/${targetUserUuid}`);
 
@@ -82,6 +94,8 @@ export class ShadowActionsService {
                     nextAction.type as ShadowAction,
                     // eslint-disable-next-line @typescript-eslint/consistent-type-assertions
                     nextAction.onCompleteAction as OnCompleteAction,
+                    // eslint-disable-next-line @typescript-eslint/consistent-type-assertions
+                    nextAction.payload as unknown as ShadowActionPayload,
                 );
             }
         }

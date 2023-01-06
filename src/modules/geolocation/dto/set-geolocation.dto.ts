@@ -5,6 +5,8 @@ export interface IGeolocation {
     localTime: Date;
     batteryLevel: number;
     batteryIsCharging: boolean;
+    createdAt: Date;
+    updatedAt: Date;
 }
 
 export class SetGeolocationDto {

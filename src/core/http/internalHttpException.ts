@@ -8,6 +8,8 @@ export const enum InternalHttpExceptionErrorCode {
     WrongAccessToken = 'wrong_access_token',
     NonUnique = 'non_unique',
     NeedForceUpdateRelations = 'need_force_update_relations',
+    UserIsNotFriend = 'user_is_not_friend',
+    UserNotHaveCoordinates = 'user_not_have_coordinates'
 }
 
 interface IInternalHttpException {
