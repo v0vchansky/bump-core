@@ -6,25 +6,64 @@ import { InternalHttpStatus } from 'src/core/http/internalHttpStatus';
 
 import { IJWTServiceVerifyPayloadResult } from '../auth/auth.types';
 import { PrismaService } from '../prisma/prisma.service';
+import { RelationRepository } from '../relation/relation.repository';
 import { RelationList } from '../relation/types';
 import { ShadowActionsService } from '../shadow-actions/shadow-actions.service';
 import { ShadowAction } from '../shadow-actions/types';
 import { GetLastUserLocationDto } from './dto/get-last-user-location';
 import { RequestUpdateUsersLocationsDto } from './dto/request-update-users-locations.dto';
 import { SetGeolocationDto } from './dto/set-geolocation.dto';
+import { haversineDistance } from './utils';
 
 @Injectable()
 export class GeolocationService {
     constructor(
         private readonly prismaService: PrismaService,
         private readonly shadowActionsService: ShadowActionsService,
+        private readonly relationRepository: RelationRepository,
     ) {}
 
     async setGeolocation(dto: SetGeolocationDto, user: IJWTServiceVerifyPayloadResult) {
         try {
-            await this.prismaService.geolocations.createMany({
-                data: dto.points.map(data => ({ ...data, localTime: new Date(data.localTime), userUuid: user.uuid })),
+            const sortedPoints = dto.points.sort((a, b) => {
+                return new Date(b.localTime).getTime() - new Date(a.localTime).getTime();
             });
+
+            const lastPoint = sortedPoints[0];
+
+            const lastLocation = await this.prismaService.geolocations.findFirst({
+                where: { userUuid: user.uuid },
+                orderBy: { createdAt: 'desc' },
+                take: 1,
+            });
+
+            const distance = haversineDistance(lastLocation.lat, lastLocation.lon, lastPoint.lat, lastPoint.lon);
+
+            if (distance > 5) {
+                // Ставим только последнюю по времени (пока что)
+                await this.prismaService.geolocations.create({
+                    data: { ...lastPoint, localTime: new Date(lastPoint.localTime), userUuid: user.uuid },
+                });
+            } else {
+                await this.prismaService.geolocations.update({
+                    where: { uuid: lastLocation.uuid },
+                    data: { updatedAt: new Date(lastPoint.localTime) },
+                });
+            }
+
+            const subscribers = await this.relationRepository.getUserRelationsByType(
+                user.uuid,
+                RelationList.Friendship,
+            );
+
+            for (const subscriber of subscribers) {
+                await this.shadowActionsService.sendShadowAction(
+                    subscriber.user.uuid,
+                    ShadowAction.ForceGetLastUserLocation,
+                    undefined,
+                    { userUuid: user.uuid },
+                );
+            }
 
             return new InternalHttpResponse({ data: undefined });
         } catch (_e) {
