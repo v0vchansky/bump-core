@@ -1,11 +1,12 @@
 import { Module } from '@nestjs/common';
 
+import { MailerService } from '../mailer/mailer.service';
 import { PrismaModule } from '../prisma/prisma.module';
 import { VerificationService } from './Verification.service';
 
 @Module({
     imports: [PrismaModule],
-    providers: [VerificationService],
+    providers: [VerificationService, MailerService],
     exports: [VerificationService],
 })
 export class VerificationModule {}

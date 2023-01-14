@@ -15,7 +15,8 @@ datasource db {
 
 model Users {
     uuid String @id @unique @default(uuid())
-    phone String @unique
+    phone String? @unique
+    email String? @unique
     birthday DateTime? @db.Date
     userName String? @unique
     displayName String?
@@ -25,12 +26,14 @@ model Users {
     geolocations Geolocations[]
     userRelations UsersRelations[]
     shadowActions ShadowActions[]
+    verification Verifications?
 }
 
 model Verifications {
     uuid String @id @unique @default(uuid())
-    phone String @unique
     code String
+    user Users @relation(fields: [userUuid], references: [uuid])
+    userUuid String @unique
 }
 
 model Geolocations {

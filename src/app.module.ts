@@ -4,6 +4,7 @@ import { ConfigModule } from '@nestjs/config';
 import { VerificationModule } from './modules/Verification/Verification.module';
 import { AuthModule } from './modules/auth/auth.module';
 import { GeolocationModule } from './modules/geolocation/geolocation.module';
+import { MailerModule } from './modules/mailer/mailer.module';
 import { PrismaModule } from './modules/prisma/prisma.module';
 import { RelationModule } from './modules/relation/relation.module';
 import { S3Module } from './modules/s3/s3.module';
@@ -23,6 +24,7 @@ import { UserModule } from './modules/user/user.module';
         PrismaModule,
         RelationModule,
         ShadowActionsModule,
+        MailerModule,
     ],
 })
 export class AppModule {}

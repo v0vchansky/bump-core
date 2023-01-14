@@ -1,4 +1,4 @@
 export class AuthSubmitLoginDto {
-    readonly phone: string;
+    readonly email: string;
     readonly code: string;
 }

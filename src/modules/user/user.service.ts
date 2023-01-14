@@ -23,11 +23,13 @@ export class UserService {
         private readonly relationService: RelationService,
     ) {}
 
-    async _createUserByPhoneIfNotExist(phone: string) {
-        let user = await this.prismaService.users.findFirst({ where: { phone } });
+    async createUserIfNotExist(phone: string | undefined, email: string | undefined) {
+        let user = await this.prismaService.users.findFirst({ where: { phone, email } });
 
         if (!user) {
-            user = await this.prismaService.users.create({ data: { phone } });
+            user = await this.prismaService.users.create({
+                data: { phone: phone.toLocaleLowerCase(), email: email.toLocaleLowerCase() },
+            });
         }
 
         return user;
@@ -37,6 +39,14 @@ export class UserService {
         return await this.prismaService.users.findFirst({
             where: {
                 phone,
+            },
+        });
+    }
+
+    async getUserByEmail(email: string) {
+        return await this.prismaService.users.findFirst({
+            where: {
+                email,
             },
         });
     }

@@ -1,28 +1,37 @@
 import { Injectable } from '@nestjs/common';
+import { InternalHttpException } from 'src/core/http/internalHttpException';
+import { InternalHttpStatus } from 'src/core/http/internalHttpStatus';
 
+import { MailerService } from '../mailer/mailer.service';
 import { PrismaService } from '../prisma/prisma.service';
 import { VerificationSendCodeDto } from './dto/verification-send-code.dto';
 import { VerificationVerifyCodeDto } from './dto/verification-verify-code.dto';
+import { getRandomCode } from './utils';
 
 @Injectable()
 export class VerificationService {
-    constructor(private readonly prismaService: PrismaService) {}
+    constructor(private readonly prismaService: PrismaService, private readonly mailerService: MailerService) {}
 
     async sendCode(dto: VerificationSendCodeDto): Promise<void> {
-        const { phone } = dto;
-        // - делаем запрос в api
+        const { userUuid, email } = dto;
 
-        const apiResult = { code: '4444' };
+        const code = await this.createCode(userUuid);
 
-        await this._createCode(apiResult.code, phone);
+        if (email) {
+            await this.mailerService.sendVerificationEmail(email, code);
+
+            return;
+        }
+
+        throw new InternalHttpException({ status: InternalHttpStatus.BAD_REQUEST, message: 'Код не был отправлен' });
     }
 
     async verifyCode(dto: VerificationVerifyCodeDto): Promise<boolean> {
-        const { code, phone } = dto;
+        const { code, userUuid } = dto;
 
         const result = await this.prismaService.verifications.findFirst({
             where: {
-                phone: phone,
+                userUuid,
                 code: code,
             },
         });
@@ -36,13 +45,17 @@ export class VerificationService {
         return false;
     }
 
-    private async _createCode(code: string, phone: string): Promise<void> {
-        const existedCode = await this.prismaService.verifications.findFirst({ where: { code, phone } });
+    private async createCode(userUuid: string): Promise<string> {
+        const existedCode = await this.prismaService.verifications.findFirst({ where: { userUuid } });
 
         if (existedCode) {
             await this.prismaService.verifications.delete({ where: { uuid: existedCode.uuid } });
         }
 
-        await this.prismaService.verifications.create({ data: { phone, code } });
+        const code = getRandomCode(4);
+
+        await this.prismaService.verifications.create({ data: { userUuid, code } });
+
+        return code;
     }
 }

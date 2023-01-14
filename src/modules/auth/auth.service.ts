@@ -23,10 +23,18 @@ export class AuthService {
     ) {}
 
     async login(dto: AuthLoginDto): Promise<InternalHttpResponse<Users>> {
-        const { phone } = dto;
-        const user = await this.userService._createUserByPhoneIfNotExist(phone);
+        const { phone, email } = dto;
 
-        await this.verificationService.sendCode({ phone });
+        if (!phone && !email) {
+            throw new InternalHttpException({
+                status: InternalHttpStatus.BAD_REQUEST,
+                message: 'Поля "Телефон" и "Email" обязательны',
+            });
+        }
+
+        const user = await this.userService.createUserIfNotExist(phone, email);
+
+        await this.verificationService.sendCode({ userUuid: user.uuid, email });
 
         return new InternalHttpResponse({ data: user });
     }
@@ -34,17 +42,24 @@ export class AuthService {
     async submitLogin(
         dto: DtoWithDateHeader<AuthSubmitLoginDto>,
     ): Promise<InternalHttpResponse<ISubmitLoginResponse> | HttpException> {
-        const { phone, code, date } = dto;
+        const { email, code, date } = dto;
 
-        const isCorrectCode = await this.verificationService.verifyCode({ code, phone });
-        const user = await this.userService.getUserByPhone(phone);
+        if (!email) {
+            throw new InternalHttpException({
+                status: InternalHttpStatus.BAD_REQUEST,
+                message: 'Поля "Телефон" и "Email" обязательны',
+            });
+        }
+
+        const user = await this.userService.getUserByEmail(email);
+        const isCorrectCode = await this.verificationService.verifyCode({ code, userUuid: user.uuid });
 
         if (isCorrectCode) {
             return new InternalHttpResponse<ISubmitLoginResponse>({
                 data: {
                     user,
-                    accessToken: this._generateAccessToken(user.uuid, phone, date),
-                    refreshToken: this._generateRefreshToken(user.uuid, phone, date),
+                    accessToken: this._generateAccessToken(user.uuid, email, date),
+                    refreshToken: this._generateRefreshToken(user.uuid, email, date),
                 },
             });
         }
@@ -75,8 +90,8 @@ export class AuthService {
         }
     }
 
-    private _generateAccessToken(uuid: string, phone: string, date: string): IJWTTokenReponse {
-        const payload = { uuid, phone };
+    private _generateAccessToken(uuid: string, email: string, date: string): IJWTTokenReponse {
+        const payload = { uuid, email };
 
         const seconds = 3600; // 1 час - 3600 секунд
 
@@ -86,8 +101,8 @@ export class AuthService {
         };
     }
 
-    private _generateRefreshToken(uuid: string, phone: string, date: string): IJWTTokenReponse {
-        const payload = { uuid, phone };
+    private _generateRefreshToken(uuid: string, email: string, date: string): IJWTTokenReponse {
+        const payload = { uuid, email };
 
         const seconds = 31536000 * 2; // 1 год - 31536000 секунд
 

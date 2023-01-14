@@ -1,3 +1,5 @@
 export class VerificationSendCodeDto {
-    readonly phone: string;
+    userUuid: string;
+    phone?: string;
+    email?: string;
 }
