@@ -1,6 +1,9 @@
-import { INestApplication, Injectable, OnModuleInit } from '@nestjs/common';
+import { INestApplication, Injectable, OnModuleInit, UseInterceptors } from '@nestjs/common';
 import { PrismaClient } from '@prisma/client';
 
+import { SentryInterceptor } from '../sentry/sentry.interceptor';
+
+@UseInterceptors(SentryInterceptor)
 @Injectable()
 export class PrismaService extends PrismaClient implements OnModuleInit {
     async onModuleInit() {

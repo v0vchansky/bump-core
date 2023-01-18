@@ -1,12 +1,14 @@
-import { Body, Controller, Post, UseGuards } from '@nestjs/common';
+import { Body, Controller, Post, UseGuards, UseInterceptors } from '@nestjs/common';
 
 import { IJWTServiceVerifyPayloadResult } from '../auth/auth.types';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
+import { SentryInterceptor } from '../sentry/sentry.interceptor';
 import { UseUser } from '../user/user.decorators';
 import { CompleteShadowActionDto } from './dto/complete-shadow-action.dto';
 import { GetShadowActionDto } from './dto/get-shadow-action.dto';
 import { ShadowActionsService } from './shadow-actions.service';
 
+@UseInterceptors(SentryInterceptor)
 @Controller('shadow_actions')
 export class ShadowActionsController {
     constructor(private shadowActionsService: ShadowActionsService) {}

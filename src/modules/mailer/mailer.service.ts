@@ -1,8 +1,10 @@
 import { MailerService as NativeMailerService } from '@nestjs-modules/mailer';
-import { Injectable } from '@nestjs/common';
+import { Injectable, UseInterceptors } from '@nestjs/common';
 
+import { SentryInterceptor } from '../sentry/sentry.interceptor';
 import { codeVerificationTemplate } from './templates/code-verification';
 
+@UseInterceptors(SentryInterceptor)
 @Injectable()
 export class MailerService {
     constructor(private readonly nativeMailerService: NativeMailerService) {}

@@ -1,13 +1,15 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, UseInterceptors } from '@nestjs/common';
 import { InternalHttpException } from 'src/core/http/internalHttpException';
 import { InternalHttpStatus } from 'src/core/http/internalHttpStatus';
 
 import { MailerService } from '../mailer/mailer.service';
 import { PrismaService } from '../prisma/prisma.service';
+import { SentryInterceptor } from '../sentry/sentry.interceptor';
 import { VerificationSendCodeDto } from './dto/verification-send-code.dto';
 import { VerificationVerifyCodeDto } from './dto/verification-verify-code.dto';
 import { getRandomCode } from './utils';
 
+@UseInterceptors(SentryInterceptor)
 @Injectable()
 export class VerificationService {
     constructor(private readonly prismaService: PrismaService, private readonly mailerService: MailerService) {}

@@ -1,7 +1,10 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, UseInterceptors } from '@nestjs/common';
 import { InjectS3, S3 } from 'nestjs-s3';
 import { v4 as uuidv4 } from 'uuid';
 
+import { SentryInterceptor } from '../sentry/sentry.interceptor';
+
+@UseInterceptors(SentryInterceptor)
 @Injectable()
 export class S3Service {
     constructor(@InjectS3() private readonly s3: S3) {}

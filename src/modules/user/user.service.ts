@@ -28,7 +28,10 @@ export class UserService {
 
         if (!user) {
             user = await this.prismaService.users.create({
-                data: { phone: phone.toLocaleLowerCase(), email: email.toLocaleLowerCase() },
+                data: {
+                    phone: phone ? phone.toLocaleLowerCase() : phone,
+                    email: email ? email.toLocaleLowerCase() : email,
+                },
             });
         }
 

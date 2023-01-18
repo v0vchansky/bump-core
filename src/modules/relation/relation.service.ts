@@ -1,11 +1,13 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, UseInterceptors } from '@nestjs/common';
 import { InternalHttpException, InternalHttpExceptionErrorCode } from 'src/core/http/internalHttpException';
 import { InternalHttpResponse } from 'src/core/http/internalHttpResponse';
 import { InternalHttpStatus } from 'src/core/http/internalHttpStatus';
 
+import { SentryInterceptor } from '../sentry/sentry.interceptor';
 import { RelationRepository } from './relation.repository';
 import { IGetUserRelation, RelationList } from './types';
 
+@UseInterceptors(SentryInterceptor)
 @Injectable()
 export class RelationService {
     constructor(private readonly relationRepository: RelationRepository) {}

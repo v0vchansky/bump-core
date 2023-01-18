@@ -1,15 +1,17 @@
-import { Body, Controller, Headers, Post } from '@nestjs/common';
+import { Body, Controller, Headers, InternalServerErrorException, Post, UseInterceptors } from '@nestjs/common';
 import { Users } from '@prisma/client';
 
 import { InternalHttpException } from '../../core/http/internalHttpException';
 import { InternalHttpResponse } from '../../core/http/internalHttpResponse';
 import { ReqHeaders } from '../../core/models/headers';
+import { SentryInterceptor } from '../sentry/sentry.interceptor';
 import { AuthService } from './auth.service';
 import { IJWTTokenReponse, ISubmitLoginResponse } from './auth.types';
 import { AuthAuthenticationDto } from './dto/auth-authentication.dto';
 import { AuthLoginDto } from './dto/auth-login.dto';
 import { AuthSubmitLoginDto } from './dto/auth-submit-login.dto';
 
+@UseInterceptors(SentryInterceptor)
 @Controller('auth')
 export class AuthController {
     constructor(private authService: AuthService) {}

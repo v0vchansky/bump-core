@@ -6,6 +6,7 @@ import { InternalHttpResponse } from 'src/core/http/internalHttpResponse';
 import { IJWTServiceVerifyPayloadResult } from '../auth/auth.types';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 import { IGetUserRelation, IUserWithRelations } from '../relation/types';
+import { SentryInterceptor } from '../sentry/sentry.interceptor';
 import { GetRelationsByTypeDto } from './dto/get-relations-by-type.dto';
 import { SearchByUsernameDto } from './dto/search-by-username.dto';
 import { SendRelationRequestDto } from './dto/send-relation-request.dto';
@@ -13,6 +14,7 @@ import { SetProfileInfoDto } from './dto/set-profile-info.dto';
 import { UseUser } from './user.decorators';
 import { UserService } from './user.service';
 
+@UseInterceptors(SentryInterceptor)
 @Controller('user')
 export class UserController {
     constructor(private userService: UserService) {}

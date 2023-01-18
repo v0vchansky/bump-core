@@ -1,5 +1,6 @@
 import { NestFactory } from '@nestjs/core';
-import * as admin from 'firebase-admin';
+import * as Sentry from '@sentry/node';
+import * as firebase from 'firebase-admin';
 import { ServiceAccount } from 'firebase-admin';
 
 import { AppModule } from './app.module';
@@ -14,9 +15,13 @@ async function bootstrap() {
         clientEmail: process.env.FIREBASE_CLIENT_EMAIL,
     };
 
-    admin.initializeApp({
-        credential: admin.credential.cert(adminConfig),
+    firebase.initializeApp({
+        credential: firebase.credential.cert(adminConfig),
         databaseURL: process.env.FIREBASE_DATABASE_URL,
+    });
+
+    Sentry.init({
+        dsn: process.env.SENTRY_DSN,
     });
 
     // eslint-disable-next-line no-console
