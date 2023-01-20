@@ -8,6 +8,7 @@ run:
 	--restart on-failure \
 	-d \
 	--cpus 3 \
+	--env-file ./.env \
 	v0vchansky/bump-core:latest
 
 stop:
@@ -21,7 +22,7 @@ start:
 	make pull \
 	&& make run
 
-attash:
+attach:
 	docker container attach
 
 ps:
