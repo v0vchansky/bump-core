@@ -1,4 +1,4 @@
-import { Body, Controller, Headers, InternalServerErrorException, Post, UseInterceptors } from '@nestjs/common';
+import { Body, Controller, Headers, Post, UseInterceptors } from '@nestjs/common';
 import { Users } from '@prisma/client';
 
 import { InternalHttpException } from '../../core/http/internalHttpException';

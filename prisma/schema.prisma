@@ -5,6 +5,7 @@ generator client {
   provider = "prisma-client-js"
   sslmode  = "require"
   sslcert  = env("CERT_PATH")
+  binaryTargets = ["native", "linux-musl", "debian-openssl-1.1.x", "darwin"]
 }
 
 datasource db {
