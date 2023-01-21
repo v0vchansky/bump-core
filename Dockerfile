@@ -18,10 +18,12 @@ RUN npm prune --production
 FROM $IMAGE as prod
 COPY --chown=node:node --from=prod-build /app/build /app/build
 COPY --chown=node:node --from=prod-build /app/node_modules /app/node_modules
+COPY --chown=node:node --from=prod-build /app/package.json /app/package.json
+COPY --chown=node:node --from=prod-build /app/prisma /app/prisma
 
 ENV NODE_ENV=production
-ENTRYPOINT ["node", "./main.js"]
 WORKDIR /app/build
-CMD [""]
+
+CMD ["npm", "run", "start:prod"]
 
 USER node
