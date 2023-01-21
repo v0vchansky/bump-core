@@ -7,7 +7,6 @@ RUN mkdir --parents ~/.postgresql && wget "https://storage.yandexcloud.net/cloud
 COPY . .
 RUN npm install
 RUN npx prisma generate
-RUN npx prisma migrate deploy
 
 #PROD MIDDLE STEP
 FROM builder as prod-build
