@@ -31,23 +31,29 @@ export class GeolocationService {
 
             const lastPoint = sortedPoints[0];
 
-            const lastLocation = await this.prismaService.geolocations.findFirst({
+            const lastLocation: Geolocations | null = await this.prismaService.geolocations.findFirst({
                 where: { userUuid: user.uuid },
                 orderBy: { createdAt: 'desc' },
                 take: 1,
             });
 
-            const distance = haversineDistance(lastLocation.lat, lastLocation.lon, lastPoint.lat, lastPoint.lon);
+            if (lastLocation) {
+                const distance = haversineDistance(lastLocation.lat, lastLocation.lon, lastPoint.lat, lastPoint.lon);
 
-            if (distance > 5) {
-                // Ставим только последнюю по времени (пока что)
+                if (distance > 5) {
+                    // Ставим только последнюю по времени (пока что)
+                    await this.prismaService.geolocations.create({
+                        data: { ...lastPoint, localTime: new Date(lastPoint.localTime), userUuid: user.uuid },
+                    });
+                } else {
+                    await this.prismaService.geolocations.update({
+                        where: { uuid: lastLocation.uuid },
+                        data: { updatedAt: new Date(lastPoint.localTime) },
+                    });
+                }
+            } else {
                 await this.prismaService.geolocations.create({
                     data: { ...lastPoint, localTime: new Date(lastPoint.localTime), userUuid: user.uuid },
-                });
-            } else {
-                await this.prismaService.geolocations.update({
-                    where: { uuid: lastLocation.uuid },
-                    data: { updatedAt: new Date(lastPoint.localTime) },
                 });
             }
 
