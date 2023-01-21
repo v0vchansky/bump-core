@@ -10,7 +10,7 @@ export class S3Service {
     constructor(@InjectS3() private readonly s3: S3) {}
 
     get bucketName() {
-        return `bump-storage-${process.env.NODE_ENV}`;
+        return process.env.S3_BUCKET_NAME;
     }
 
     get avatarsBucket() {
