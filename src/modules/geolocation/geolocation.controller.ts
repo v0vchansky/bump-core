@@ -1,24 +1,22 @@
-import { Body, Controller, Post, UseGuards, UseInterceptors } from '@nestjs/common';
+import { Body, Controller, Post, UseGuards } from '@nestjs/common';
 import { Geolocations } from '@prisma/client';
 
 import { InternalHttpException } from '../../core/http/internalHttpException';
 import { InternalHttpResponse } from '../../core/http/internalHttpResponse';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
-import { SentryInterceptor } from '../sentry/sentry.interceptor';
 import { UseUser } from '../user/user.decorators';
 import { GetLastUserLocationDto } from './dto/get-last-user-location';
 import { RequestUpdateUsersLocationsDto } from './dto/request-update-users-locations.dto';
 import { SetGeolocationDto } from './dto/set-geolocation.dto';
 import { GeolocationService } from './geolocation.service';
 
-@UseInterceptors(SentryInterceptor)
 @Controller('geolocation')
 export class GeolocationController {
     constructor(private geolocationService: GeolocationService) {}
 
     @UseGuards(JwtAuthGuard)
     @Post('set_geolocations')
-    async login(
+    async setGeolocations(
         @UseUser() user,
         @Body() dto: SetGeolocationDto,
     ): Promise<InternalHttpResponse<undefined> | InternalHttpException> {

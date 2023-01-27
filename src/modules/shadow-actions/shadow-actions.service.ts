@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, UseInterceptors } from '@nestjs/common';
 import { Prisma } from '@prisma/client';
 import { addMinutes, isAfter } from 'date-fns';
 import * as admin from 'firebase-admin';
@@ -6,9 +6,11 @@ import { InternalHttpResponse } from 'src/core/http/internalHttpResponse';
 
 import { IJWTServiceVerifyPayloadResult } from '../auth/auth.types';
 import { PrismaService } from '../prisma/prisma.service';
+import { SentryInterceptor } from '../sentry/sentry.interceptor';
 import { CompleteShadowActionDto } from './dto/complete-shadow-action.dto';
 import { OnCompleteAction, ShadowAction, ShadowActionPayload } from './types';
 
+@UseInterceptors(SentryInterceptor)
 @Injectable()
 export class ShadowActionsService {
     constructor(private readonly prismaService: PrismaService) {}
@@ -70,9 +72,9 @@ export class ShadowActionsService {
             data: {
                 targetUserUuid,
                 type,
-                onCompleteAction,
+                onCompleteAction: onCompleteAction || undefined,
                 // eslint-disable-next-line @typescript-eslint/consistent-type-assertions
-                payload: payload as unknown as Prisma.JsonValue,
+                payload: (payload as unknown as Prisma.JsonValue) || undefined,
             },
         });
         const ref = admin.database().ref(`shadowActions/${targetUserUuid}`);

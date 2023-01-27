@@ -7,7 +7,6 @@ run:
 	-p 80:8080 \
 	--restart on-failure \
 	-d \
-	--cpus 3 \
 	--env-file ./.env \
 	v0vchansky/bump-core:latest
 

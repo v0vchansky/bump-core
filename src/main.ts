@@ -6,7 +6,7 @@ import { ServiceAccount } from 'firebase-admin';
 import { AppModule } from './app.module';
 
 async function bootstrap() {
-    const PORT = Number(process.env.PORT) || 3000;
+    const PORT = Number(process.env.PORT) || 80;
     const app = await NestFactory.create(AppModule);
 
     const adminConfig: ServiceAccount = {

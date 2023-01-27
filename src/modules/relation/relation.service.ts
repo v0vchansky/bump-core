@@ -4,13 +4,18 @@ import { InternalHttpResponse } from 'src/core/http/internalHttpResponse';
 import { InternalHttpStatus } from 'src/core/http/internalHttpStatus';
 
 import { SentryInterceptor } from '../sentry/sentry.interceptor';
+import { ShadowActionsService } from '../shadow-actions/shadow-actions.service';
+import { ShadowAction } from '../shadow-actions/types';
 import { RelationRepository } from './relation.repository';
 import { IGetUserRelation, RelationList } from './types';
 
 @UseInterceptors(SentryInterceptor)
 @Injectable()
 export class RelationService {
-    constructor(private readonly relationRepository: RelationRepository) {}
+    constructor(
+        private readonly relationRepository: RelationRepository,
+        private readonly shadowActionsService: ShadowActionsService,
+    ) {}
 
     async sendRequestToFriends(
         from: string,
@@ -66,6 +71,10 @@ export class RelationService {
         await this.relationRepository.createTwoSideRelation(from, to, RelationList.Friendship, RelationList.Friendship);
 
         const friendship = await this.relationRepository.getUserRelationByType(from, to, RelationList.Friendship);
+
+        await this.shadowActionsService.sendShadowAction(to, ShadowAction.ForceUpdateUserFriends, null, {
+            deletedUserUuid: from,
+        });
 
         return new InternalHttpResponse({ data: friendship });
     }
@@ -123,6 +132,10 @@ export class RelationService {
                 errorCode: InternalHttpExceptionErrorCode.NeedForceUpdateRelations,
             });
         }
+
+        await this.shadowActionsService.sendShadowAction(to, ShadowAction.ForceUpdateUserFriends, null, {
+            deletedUserUuid: from,
+        });
 
         return new InternalHttpResponse();
     }

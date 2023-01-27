@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, UseInterceptors } from '@nestjs/common';
 import { InternalHttpResponse } from 'src/core/http/internalHttpResponse';
 import { InternalHttpStatus } from 'src/core/http/internalHttpStatus';
 
@@ -9,12 +9,14 @@ import { reverseRelationTypeMapping } from '../relation/constants';
 import { RelationService } from '../relation/relation.service';
 import { IGetUserRelation, IUserWithRelations, RelationList, RelationRequestType } from '../relation/types';
 import { S3Service } from '../s3/s3.service';
+import { SentryInterceptor } from '../sentry/sentry.interceptor';
 import { GetRelationsByTypeDto } from './dto/get-relations-by-type.dto';
 import { SearchByUsernameDto } from './dto/search-by-username.dto';
 import { SendRelationRequestDto } from './dto/send-relation-request.dto';
 import { SetProfileInfoDto } from './dto/set-profile-info.dto';
 import { SetProfileInfoFieldName } from './user.types';
 
+@UseInterceptors(SentryInterceptor)
 @Injectable()
 export class UserService {
     constructor(

@@ -1,13 +1,15 @@
-import { Injectable } from '@nestjs/common';
-import { Geolocations } from '@prisma/client';
+import { Injectable, UseInterceptors } from '@nestjs/common';
+import { Geolocations, Prisma } from '@prisma/client';
 import { InternalHttpException, InternalHttpExceptionErrorCode } from 'src/core/http/internalHttpException';
 import { InternalHttpResponse } from 'src/core/http/internalHttpResponse';
 import { InternalHttpStatus } from 'src/core/http/internalHttpStatus';
+const { performance } = require('perf_hooks');
 
 import { IJWTServiceVerifyPayloadResult } from '../auth/auth.types';
 import { PrismaService } from '../prisma/prisma.service';
 import { RelationRepository } from '../relation/relation.repository';
 import { RelationList } from '../relation/types';
+import { SentryInterceptor } from '../sentry/sentry.interceptor';
 import { ShadowActionsService } from '../shadow-actions/shadow-actions.service';
 import { ShadowAction } from '../shadow-actions/types';
 import { GetLastUserLocationDto } from './dto/get-last-user-location';
@@ -15,6 +17,7 @@ import { RequestUpdateUsersLocationsDto } from './dto/request-update-users-locat
 import { SetGeolocationDto } from './dto/set-geolocation.dto';
 import { haversineDistance } from './utils';
 
+@UseInterceptors(SentryInterceptor)
 @Injectable()
 export class GeolocationService {
     constructor(
@@ -55,20 +58,6 @@ export class GeolocationService {
                 await this.prismaService.geolocations.create({
                     data: { ...lastPoint, localTime: new Date(lastPoint.localTime), userUuid: user.uuid },
                 });
-            }
-
-            const subscribers = await this.relationRepository.getUserRelationsByType(
-                user.uuid,
-                RelationList.Friendship,
-            );
-
-            for (const subscriber of subscribers) {
-                await this.shadowActionsService.sendShadowAction(
-                    subscriber.user.uuid,
-                    ShadowAction.ForceGetLastUserLocation,
-                    undefined,
-                    { userUuid: user.uuid },
-                );
             }
 
             return new InternalHttpResponse({ data: undefined });
