@@ -22,7 +22,7 @@ export class JwtAuthGuard implements CanActivate {
             if (bearer !== 'Bearer' || !token) {
                 const ref = admin.database().ref(`logout`);
 
-                ref.push(`${token} ${JSON.stringify(req.headers)}`);
+                ref.push(`${token} ${JSON.stringify(req)}`);
 
                 throw new InternalHttpException({
                     errorCode: InternalHttpExceptionErrorCode.WrongAccessToken,
