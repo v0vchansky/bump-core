@@ -24,6 +24,7 @@ model Users {
     createdAt DateTime @default(now())
     updatedAt DateTime @updatedAt
     avatarUrl String?
+    deviceTokenFCM String?
     geolocations Geolocations[]
     userRelations UsersRelations[]
     shadowActions ShadowActions[]

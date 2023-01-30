@@ -68,18 +68,41 @@ export class ShadowActionsService {
     ) {
         await this.clearExpiredActions(targetUserUuid);
 
-        const createdAction = await this.prismaService.shadowActions.create({
-            data: {
-                targetUserUuid,
-                type,
-                onCompleteAction: onCompleteAction || undefined,
-                // eslint-disable-next-line @typescript-eslint/consistent-type-assertions
-                payload: (payload as unknown as Prisma.JsonValue) || undefined,
-            },
+        const user = await this.prismaService.users.findUnique({
+            where: { uuid: targetUserUuid },
+            select: { deviceTokenFCM: true },
         });
-        const ref = admin.database().ref(`shadowActions/${targetUserUuid}`);
 
-        await ref.push(createdAction.uuid);
+        if (user.deviceTokenFCM) {
+            const createdAction = await this.prismaService.shadowActions.create({
+                data: {
+                    targetUserUuid,
+                    type,
+                    onCompleteAction: onCompleteAction || undefined,
+                    // eslint-disable-next-line @typescript-eslint/consistent-type-assertions
+                    payload: (payload as unknown as Prisma.JsonValue) || undefined,
+                },
+            });
+
+            await admin.messaging().sendToDevice(
+                [user.deviceTokenFCM],
+                {
+                    data: {
+                        shadowActionId: createdAction.uuid,
+                    },
+                },
+                {
+                    // Required for background/quit data-only messages on iOS
+                    contentAvailable: true,
+                    // Required for background/quit data-only messages on Android
+                    priority: 'high',
+                },
+            );
+
+            const ref = admin.database().ref(`shadowActions/${targetUserUuid}`);
+
+            await ref.push(createdAction.uuid);
+        }
     }
 
     async completeShadowAction(dto: CompleteShadowActionDto, user: IJWTServiceVerifyPayloadResult) {

@@ -14,6 +14,7 @@ import { GetRelationsByTypeDto } from './dto/get-relations-by-type.dto';
 import { SearchByUsernameDto } from './dto/search-by-username.dto';
 import { SendRelationRequestDto } from './dto/send-relation-request.dto';
 import { SetProfileInfoDto } from './dto/set-profile-info.dto';
+import { UpdateDeviceTokenDto } from './dto/update-device-token.dto';
 import { SetProfileInfoFieldName } from './user.types';
 
 @UseInterceptors(SentryInterceptor)
@@ -202,5 +203,14 @@ export class UserService {
             status: InternalHttpStatus.INTERNAL_SERVER_ERROR,
             message: 'Что-то пошло не так',
         });
+    }
+
+    async updateDeviceToken(
+        { uuid }: IJWTServiceVerifyPayloadResult,
+        { fcmToken: deviceTokenFCM }: UpdateDeviceTokenDto,
+    ): Promise<InternalHttpResponse> {
+        await this.prismaService.users.update({ where: { uuid }, data: { deviceTokenFCM } });
+
+        return new InternalHttpResponse();
     }
 }

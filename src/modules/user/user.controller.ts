@@ -11,6 +11,7 @@ import { GetRelationsByTypeDto } from './dto/get-relations-by-type.dto';
 import { SearchByUsernameDto } from './dto/search-by-username.dto';
 import { SendRelationRequestDto } from './dto/send-relation-request.dto';
 import { SetProfileInfoDto } from './dto/set-profile-info.dto';
+import { UpdateDeviceTokenDto } from './dto/update-device-token.dto';
 import { UseUser } from './user.decorators';
 import { UserService } from './user.service';
 
@@ -75,5 +76,14 @@ export class UserController {
     @Post('delete_avatar')
     async deleteAvatar(@UseUser() user: IJWTServiceVerifyPayloadResult): Promise<InternalHttpResponse> {
         return await this.userService.deleteAvatar(user);
+    }
+
+    @UseGuards(JwtAuthGuard)
+    @Post('update_device_token')
+    async updateDeviceToken(
+        @UseUser() user: IJWTServiceVerifyPayloadResult,
+        @Body() dto: UpdateDeviceTokenDto,
+    ): Promise<InternalHttpResponse> {
+        return this.userService.updateDeviceToken(user, dto);
     }
 }
