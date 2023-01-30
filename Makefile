@@ -14,7 +14,8 @@ stop:
 	docker stop api && docker rm api
 
 reload:
-	make stop \
+	make pull \
+	&& make stop \
 	&& make run
 
 start:

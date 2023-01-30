@@ -1,5 +1,6 @@
 import { CanActivate, ExecutionContext, Injectable } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
+import * as admin from 'firebase-admin';
 import { Observable } from 'rxjs';
 import { InternalHttpStatus } from 'src/core/http/internalHttpStatus';
 
@@ -19,6 +20,10 @@ export class JwtAuthGuard implements CanActivate {
             const token = authHeader.split(' ')[1];
 
             if (bearer !== 'Bearer' || !token) {
+                const ref = admin.database().ref(`logout`);
+
+                ref.push(`${token} ${JSON.stringify(req.headers)}`);
+
                 throw new InternalHttpException({
                     errorCode: InternalHttpExceptionErrorCode.WrongAccessToken,
                     message: 'Пользователь не авторизован',
