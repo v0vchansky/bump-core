@@ -20,10 +20,6 @@ export class JwtAuthGuard implements CanActivate {
             const token = authHeader.split(' ')[1];
 
             if (bearer !== 'Bearer' || !token) {
-                const ref = admin.database().ref(`logout`);
-
-                ref.push(`${token} ${JSON.stringify(req)}`);
-
                 throw new InternalHttpException({
                     errorCode: InternalHttpExceptionErrorCode.WrongAccessToken,
                     message: 'Пользователь не авторизован',
@@ -37,14 +33,6 @@ export class JwtAuthGuard implements CanActivate {
 
             return true;
         } catch (e) {
-            const authHeader = req.headers.authorization;
-            const bearer = authHeader.split(' ')[0];
-            const token = authHeader.split(' ')[1];
-
-            const ref = admin.database().ref(`logout`);
-
-            ref.push(`${token} ${JSON.stringify(req)}`);
-
             throw new InternalHttpException({
                 errorCode: InternalHttpExceptionErrorCode.WrongAccessToken,
                 message: 'Пользователь не авторизован',

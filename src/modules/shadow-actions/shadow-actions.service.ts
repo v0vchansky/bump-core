@@ -90,6 +90,11 @@ export class ShadowActionsService {
                     data: {
                         shadowActionId: createdAction.uuid,
                     },
+                    notification: {
+                        title: 'Some title',
+                        body: 'Some text',
+                        sound: 'default',
+                    },
                 },
                 {
                     // Required for background/quit data-only messages on iOS
