@@ -99,9 +99,9 @@ export class ShadowActionsService {
                 },
             );
 
-            const ref = admin.database().ref(`shadowActions/${targetUserUuid}`);
+            // const ref = admin.database().ref(`shadowActions/${targetUserUuid}`);
 
-            await ref.push(createdAction.uuid);
+            // await ref.push(createdAction.uuid);
         }
     }
 

@@ -1,9 +1,8 @@
 import { Injectable, UseInterceptors } from '@nestjs/common';
-import { Geolocations, Prisma } from '@prisma/client';
+import { Geolocations } from '@prisma/client';
 import { InternalHttpException, InternalHttpExceptionErrorCode } from 'src/core/http/internalHttpException';
 import { InternalHttpResponse } from 'src/core/http/internalHttpResponse';
 import { InternalHttpStatus } from 'src/core/http/internalHttpStatus';
-const { performance } = require('perf_hooks');
 
 import { IJWTServiceVerifyPayloadResult } from '../auth/auth.types';
 import { PrismaService } from '../prisma/prisma.service';
