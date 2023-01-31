@@ -24,6 +24,15 @@ export class GeolocationController {
     }
 
     @UseGuards(JwtAuthGuard)
+    @Post('set_geolocations_v2')
+    async setGeolocationsV2(
+        @UseUser() user,
+        @Body() dto: SetGeolocationDto,
+    ): Promise<InternalHttpResponse<undefined> | InternalHttpException> {
+        return await this.geolocationService.setGeolocationV2(dto, user);
+    }
+
+    @UseGuards(JwtAuthGuard)
     @Post('get_last_user_location')
     async getLastUserLocation(
         @UseUser() user,

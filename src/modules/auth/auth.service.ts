@@ -97,7 +97,7 @@ export class AuthService {
     private _generateAccessToken(uuid: string, email: string, date: string): IJWTTokenReponse {
         const payload = { uuid, email };
 
-        const seconds = 15; // 1 час - 3600 секунд
+        const seconds = 60; // 1 час - 3600 секунд
 
         return {
             token: this.jwtService.sign(payload, { expiresIn: seconds }),

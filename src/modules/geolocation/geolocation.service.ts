@@ -68,6 +68,35 @@ export class GeolocationService {
         }
     }
 
+    async setGeolocationV2(dto: SetGeolocationDto, user: IJWTServiceVerifyPayloadResult) {
+        return await this.setGeolocation({
+            points: [
+                // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+                // @ts-ignore
+                {
+                    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+                    // @ts-ignore
+                    lat: dto.location.coords.latitude,
+                    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+                    // @ts-ignore
+                    lon: dto.location.coords.longitude,
+                    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+                    // @ts-ignore
+                    speed: dto.location.coords.speed || 0,
+                    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+                    // @ts-ignore
+                    localTime: dto.location.timestamp,
+                    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+                    // @ts-ignore
+                    batteryLevel: Math.abs(dto.location.battery.level),
+                    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+                    // @ts-ignore
+                    batteryIsCharging: dto.location.battery.is_charging,
+                }
+            ] 
+        }, user)
+    }
+
     async getLastUserLocation(
         dto: GetLastUserLocationDto,
         user: IJWTServiceVerifyPayloadResult,
