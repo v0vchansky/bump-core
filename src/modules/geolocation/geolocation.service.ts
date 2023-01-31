@@ -42,7 +42,7 @@ export class GeolocationService {
             if (lastLocation) {
                 const distance = haversineDistance(lastLocation.lat, lastLocation.lon, lastPoint.lat, lastPoint.lon);
 
-                if (distance > 5) {
+                if (distance > 9) {
                     // Ставим только последнюю по времени (пока что)
                     await this.prismaService.geolocations.create({
                         data: { ...lastPoint, localTime: new Date(lastPoint.localTime), userUuid: user.uuid },

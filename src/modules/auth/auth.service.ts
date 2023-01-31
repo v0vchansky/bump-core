@@ -2,6 +2,7 @@ import { HttpException, Injectable } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { Users } from '@prisma/client';
 import { addSeconds } from 'date-fns';
+import * as admin from 'firebase-admin';
 import { InternalHttpStatus } from 'src/core/http/internalHttpStatus';
 
 import { InternalHttpException, InternalHttpExceptionErrorCode } from '../../core/http/internalHttpException';
@@ -82,6 +83,9 @@ export class AuthService {
 
             return new InternalHttpResponse({ data: token });
         } catch (e) {
+            const ref = admin.database().ref(`error`);
+
+            await ref.push(JSON.stringify(dto));
             throw new InternalHttpException({
                 errorCode: InternalHttpExceptionErrorCode.WrongRefreshToken,
                 message: 'Пользователь не авторизован',
@@ -93,7 +97,7 @@ export class AuthService {
     private _generateAccessToken(uuid: string, email: string, date: string): IJWTTokenReponse {
         const payload = { uuid, email };
 
-        const seconds = 3600; // 1 час - 3600 секунд
+        const seconds = 15; // 1 час - 3600 секунд
 
         return {
             token: this.jwtService.sign(payload, { expiresIn: seconds }),
