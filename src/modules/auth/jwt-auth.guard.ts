@@ -1,6 +1,5 @@
 import { CanActivate, ExecutionContext, Injectable } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
-import * as admin from 'firebase-admin';
 import { Observable } from 'rxjs';
 import { InternalHttpStatus } from 'src/core/http/internalHttpStatus';
 

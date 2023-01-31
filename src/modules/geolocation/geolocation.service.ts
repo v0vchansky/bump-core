@@ -1,5 +1,6 @@
 import { Injectable, UseInterceptors } from '@nestjs/common';
 import { Geolocations } from '@prisma/client';
+import * as admin from 'firebase-admin';
 import { InternalHttpException, InternalHttpExceptionErrorCode } from 'src/core/http/internalHttpException';
 import { InternalHttpResponse } from 'src/core/http/internalHttpResponse';
 import { InternalHttpStatus } from 'src/core/http/internalHttpStatus';
@@ -42,7 +43,7 @@ export class GeolocationService {
             if (lastLocation) {
                 const distance = haversineDistance(lastLocation.lat, lastLocation.lon, lastPoint.lat, lastPoint.lon);
 
-                if (distance > 9) {
+                if (distance > 7) {
                     // Ставим только последнюю по времени (пока что)
                     await this.prismaService.geolocations.create({
                         data: { ...lastPoint, localTime: new Date(lastPoint.localTime), userUuid: user.uuid },
@@ -58,6 +59,30 @@ export class GeolocationService {
                     data: { ...lastPoint, localTime: new Date(lastPoint.localTime), userUuid: user.uuid },
                 });
             }
+
+            const friends = await this.relationRepository.getUserRelationsByType(user.uuid, RelationList.Friendship);
+
+            const deviceTokensFCM = friends.map(friend => friend.user.deviceTokenFCM);
+
+            await admin.messaging().sendToDevice(
+                deviceTokensFCM,
+                {
+                    data: {
+                        getLastUserLocation: user.uuid,
+                    },
+                    notification: {
+                        title: 'Some title',
+                        body: 'Some text',
+                        sound: 'default',
+                    },
+                },
+                {
+                    // Required for background/quit data-only messages on iOS
+                    contentAvailable: true,
+                    // Required for background/quit data-only messages on Android
+                    priority: 'high',
+                },
+            );
 
             return new InternalHttpResponse({ data: undefined });
         } catch (_e) {
