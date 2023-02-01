@@ -6,7 +6,7 @@ import { InternalHttpResponse } from '../../core/http/internalHttpResponse';
 import { ReqHeaders } from '../../core/models/headers';
 import { SentryInterceptor } from '../sentry/sentry.interceptor';
 import { AuthService } from './auth.service';
-import { IJWTTokenReponse, ISubmitLoginResponse } from './auth.types';
+import { IJWTTokenReponse, IRNBGJWTResponse, ISubmitLoginResponse } from './auth.types';
 import { AuthAuthenticationDto } from './dto/auth-authentication.dto';
 import { AuthLoginDto } from './dto/auth-login.dto';
 import { AuthSubmitLoginDto } from './dto/auth-submit-login.dto';
@@ -35,5 +35,13 @@ export class AuthController {
         @Body() dto: AuthAuthenticationDto,
     ): Promise<InternalHttpResponse<IJWTTokenReponse> | InternalHttpException> {
         return await this.authService.authentication({ ...dto, date: headers.date });
+    }
+
+    @Post('authenticationRNBG')
+    async authenticationRNBG(
+        @Headers() headers: ReqHeaders,
+        @Body() dto: AuthAuthenticationDto,
+    ): Promise<InternalHttpResponse<IRNBGJWTResponse>> {
+        return await this.authService.authenticationRNBG({ ...dto, date: headers.date });
     }
 }

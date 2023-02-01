@@ -9,7 +9,7 @@ import { InternalHttpResponse } from '../../core/http/internalHttpResponse';
 import { DtoWithDateHeader } from '../../core/models/headers';
 import { UserService } from '../user/user.service';
 import { VerificationService } from '../verification/verification.service';
-import { IJWTServiceVerifyPayloadResult, IJWTTokenReponse, ISubmitLoginResponse } from './auth.types';
+import { IJWTServiceVerifyPayloadResult, IJWTTokenReponse, IRNBGJWTResponse, ISubmitLoginResponse } from './auth.types';
 import { AuthAuthenticationDto } from './dto/auth-authentication.dto';
 import { AuthLoginDto } from './dto/auth-login.dto';
 import { AuthSubmitLoginDto } from './dto/auth-submit-login.dto';
@@ -81,6 +81,27 @@ export class AuthService {
             const token = this._generateAccessToken(payload.uuid, payload.phone, date);
 
             return new InternalHttpResponse({ data: token });
+        } catch (e) {
+            throw new InternalHttpException({
+                errorCode: InternalHttpExceptionErrorCode.WrongRefreshToken,
+                message: 'Пользователь не авторизован',
+                status: InternalHttpStatus.UNAUTHORIZED,
+            });
+        }
+    }
+
+    async authenticationRNBG(
+        dto: DtoWithDateHeader<AuthAuthenticationDto>,
+    ): Promise<InternalHttpResponse<IRNBGJWTResponse>> {
+        const { refreshToken, date } = dto;
+
+        try {
+            const payload = this.jwtService.verify<IJWTServiceVerifyPayloadResult>(refreshToken);
+            const token = this._generateAccessToken(payload.uuid, payload.phone, date);
+
+            return new InternalHttpResponse<IRNBGJWTResponse>({
+                data: { accessToken: token.token, refreshToken: refreshToken },
+            });
         } catch (e) {
             throw new InternalHttpException({
                 errorCode: InternalHttpExceptionErrorCode.WrongRefreshToken,

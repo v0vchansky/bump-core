@@ -15,3 +15,8 @@ export interface IJWTServiceVerifyPayloadResult {
     uuid: string;
     phone: string;
 }
+
+export interface IRNBGJWTResponse {
+    accessToken: string;
+    refreshToken: string;
+}
